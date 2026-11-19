@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light" data-lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>Mazda Parts Finder Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
+  --primary:#2563eb;--primary-d:#1d4ed8;--ok:#16a34a;--no:#dc2626;
+  --warn:#d97706;--star:#f59e0b;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
+  --chip:#f1f5f9;--chip-active:#dbeafe;--chip-active-text:#1e40af;
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--card:#1e293b;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;
+  --primary:#3b82f6;--primary-d:#2563eb;--shadow:0 1px 3px rgba(0,0,0,.3),0 4px 12px rgba(0,0,0,.2);
+  --chip:#1e293b;--chip-active:#1e3a8a;--chip-active-text:#93c5fd;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;min-height:100dvh;transition:background .2s,color .2s;overflow-x:hidden}
+
+header{background:linear-gradient(135deg,#1e3a8a,#2563eb 60%,#3b82f6);color:#fff;padding:20px 20px 26px;position:sticky;top:0;z-index:50;box-shadow:0 4px 20px rgba(37,99,235,.25);padding-top:calc(20px + env(safe-area-inset-top));padding-left:calc(20px + env(safe-area-inset-left));padding-right:calc(20px + env(safe-area-inset-right))}
+.hdr-row{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.hdr-title{font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.hdr-actions{display:flex;gap:8px;flex-wrap:wrap}
+.icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.85rem;font-family:inherit;transition:.15s;display:flex;align-items:center;gap:6px;min-height:44px;touch-action:manipulation}
+.icon-btn:hover{background:rgba(255,255,255,.28)}
+.icon-btn:active{transform:scale(.96)}
+
+.search-wrap{max-width:1280px;margin:14px auto 0}
+.search-box{display:flex;align-items:center;background:#fff;border-radius:12px;padding:4px 6px 4px 16px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.search-box input{flex:1;border:none;outline:none;padding:12px 8px;font-size:16px;font-family:inherit;background:transparent;color:#0f172a;min-width:0;-webkit-appearance:none;appearance:none;border-radius:0}
+.search-box input::placeholder{color:#94a3b8}
+.search-box kbd{background:#e2e8f0;color:#64748b;padding:2px 8px;border-radius:5px;font-size:.75rem;font-family:monospace}
+
+main{max-width:1280px;margin:0 auto;padding:20px;padding-left:calc(20px + env(safe-area-inset-left));padding-right:calc(20px + env(safe-area-inset-right));padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+
+.stats-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);flex:1;min-width:150px;border:1px solid var(--border)}
+.stat-label{font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.stat-value{font-size:1.6rem;font-weight:700;color:var(--text)}
+.stat-value.ok{color:var(--ok)}
+.stat-value.warn{color:var(--warn)}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:7px 14px;border-radius:999px;background:var(--chip);color:var(--text);border:1.5px solid transparent;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;display:flex;align-items:center;gap:6px;min-height:38px;touch-action:manipulation}
+.chip:hover{background:var(--chip-active);color:var(--chip-active-text)}
+.chip.active{background:var(--chip-active);color:var(--chip-active-text);border-color:var(--primary)}
+.chip .count{background:rgba(0,0,0,.1);padding:1px 7px;border-radius:999px;font-size:.75rem}
+.chip.active .count{background:rgba(37,99,235,.25)}
+
+.filters{background:var(--card);border-radius:14px;padding:16px;box-shadow:var(--shadow);margin-bottom:20px;border:1px solid var(--border)}
+.f-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end}
+.fld label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.fld select,.fld input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:16px;font-family:inherit;background:var(--card);color:var(--text);transition:border-color .15s;-webkit-appearance:none;appearance:none}
+.fld select{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;padding-left:32px}
+.fld select:focus,.fld input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+
+#results{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));padding-bottom:60px}
+.pc{background:var(--card);border-radius:12px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--border);transition:transform .15s,box-shadow .15s,border-color .15s;display:flex;flex-direction:column;gap:9px;cursor:pointer;position:relative}
+.pc:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);border-color:var(--primary)}
+.pc-star{position:absolute;top:10px;left:10px;background:transparent;border:none;font-size:1.2rem;cursor:pointer;padding:6px;opacity:.4;transition:.15s;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;z-index:2}
+.pc-star:hover{opacity:1;transform:scale(1.15)}
+.pc-star.on{opacity:1;color:var(--star)}
+.pc-name{font-size:.95rem;font-weight:600;line-height:1.4;min-height:2.6em;padding-left:24px}
+.pc-num{font-family:'Courier New',monospace;font-size:.82rem;background:var(--chip);color:var(--text);padding:5px 9px;border-radius:6px;direction:ltr;text-align:left;display:inline-block;word-break:break-all;font-weight:600}
+.pc-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:7px}
+.bg{font-size:.72rem;padding:3px 9px;border-radius:999px;font-weight:600;white-space:nowrap}
+.bg-m{background:#dbeafe;color:#1e40af}
+.bg-y{background:#fef3c7;color:#92400e}
+.bg-i{background:#dcfce7;color:#166534}
+.bg-o{background:#fee2e2;color:#991b1b}
+.bg-l{background:#ede9fe;color:#5b21b6;font-family:monospace}
+.bg-c{background:#fce7f3;color:#9f1239}
+[data-theme="dark"] .bg-m{background:#1e3a8a;color:#93c5fd}
+[data-theme="dark"] .bg-y{background:#78350f;color:#fcd34d}
+[data-theme="dark"] .bg-i{background:#14532d;color:#86efac}
+[data-theme="dark"] .bg-o{background:#7f1d1d;color:#fca5a5}
+[data-theme="dark"] .bg-l{background:#4c1d95;color:#c4b5fd}
+[data-theme="dark"] .bg-c{background:#831843;color:#f9a8d4}
+
+/* ===== Image Upload Styles ===== */
+.pc-img-container {
+  width: 100%;
+  height: 160px;
+  background-color: var(--chip);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  position: relative;
+  border: 1px dashed var(--border);
+}
+.pc-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pc-img-placeholder {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.pc-img-upload-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  backdrop-filter: blur(2px);
+  transition: background 0.2s;
+  z-index: 2;
+}
+.pc-img-upload-btn:hover { background: rgba(0,0,0,0.85); }
+.pc-img-upload-input { display: none; }
+
+/* Processing overlay */
+.pc-img-processing {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8rem;
+  z-index: 3;
+}
+.pc-img-processing.show { display: flex; }
+.pc-img-processing .spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1}
+.empty-icon{font-size:3rem;margin-bottom:12px;opacity:.5}
+.empty h3{color:var(--text);margin-bottom:6px}
+
+.loading{text-align:center;padding:30px;color:var(--muted);grid-column:1/-1;font-size:.9rem}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;padding-top:calc(20px + env(safe-area-inset-top));padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.modal-bg.show{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border-radius:16px;padding:24px;max-width:560px;width:100%;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .25s}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal h2{font-size:1.2rem;margin-bottom:14px;padding-left:36px}
+.modal-close{position:absolute;top:16px;left:16px;background:var(--chip);border:none;width:36px;height:36px;border-radius:8px;cursor:pointer;color:var(--text);font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:.15s;touch-action:manipulation;z-index:2}
+.modal-close:hover{background:var(--border)}
+
+.detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.9rem;gap:12px}
+.detail-row:last-child{border:none}
+.detail-key{color:var(--muted);font-weight:600;flex-shrink:0}
+.detail-val{text-align:left;word-break:break-word}
+.detail-val.mono{font-family:'Courier New',monospace;direction:ltr;text-align:left}
+
+.drop-zone{
+  border:3px dashed var(--border);border-radius:14px;padding:32px 20px;text-align:center;
+  background:var(--bg);cursor:pointer;transition:.2s;margin-bottom:14px;touch-action:manipulation;
+}
+.drop-zone:hover,.drop-zone.dragover{
+  border-color:var(--primary);background:var(--chip-active);color:var(--chip-active-text);
+}
+.drop-zone .dz-icon{font-size:2.5rem;margin-bottom:8px;display:block}
+.drop-zone .dz-title{font-size:1.05rem;font-weight:700;margin-bottom:4px;color:var(--text)}
+.drop-zone .dz-sub{font-size:.82rem;color:var(--muted)}
+.drop-zone.dragover .dz-title,.drop-zone.dragover .dz-sub{color:var(--chip-active-text)}
+
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--muted);font-size:.8rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.import-area{width:100%;min-height:110px;padding:12px;border:2px dashed var(--border);border-radius:10px;font-family:'Courier New',monospace;font-size:16px;direction:ltr;text-align:left;resize:vertical;background:var(--bg);color:var(--text);-webkit-appearance:none;appearance:none}
+.import-area:focus{outline:none;border-color:var(--primary)}
+.import-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{padding:10px 20px;border:none;border-radius:9px;font-weight:600;cursor:pointer;font-size:.9rem;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;touch-action:manipulation}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--primary);color:#fff}
+.btn-p:hover{background:var(--primary-d)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed}
+.btn-g{background:var(--chip);color:var(--text);border:1.5px solid var(--border)}
+.btn-g:hover{background:var(--border)}
+.btn-r{background:#fef2f2;color:var(--no);border:1.5px solid #fecaca}
+[data-theme="dark"] .btn-r{background:#7f1d1d;color:#fca5a5;border-color:#991b1b}
+
+.health{margin-top:14px;padding:14px;border-radius:10px;background:var(--chip);font-size:.85rem;line-height:1.8}
+.health b{color:var(--primary)}
+.health .ok{color:var(--ok)}
+.health .warn{color:var(--warn)}
+.health .no{color:var(--no)}
+
+.progress{margin-top:14px;height:8px;background:var(--border);border-radius:99px;overflow:hidden;display:none}
+.progress.show{display:block}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),#3b82f6);width:0%;transition:width .3s;border-radius:99px}
+
+.toast{position:fixed;bottom:24px;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(100px);background:#1e293b;color:#fff;padding:12px 22px;border-radius:10px;font-size:.9rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:300;transition:transform .3s,opacity .3s;opacity:0;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+.hidden{display:none!important}
+
+/* ===== Form styles ===== */
+.form-grid{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-bottom:16px}
+.form-grid .full{grid-column:1/-1}
+.form-grid .fld{margin:0}
+.form-grid .fld label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.form-grid .fld input,.form-grid .fld select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:16px;font-family:inherit;background:var(--card);color:var(--text);transition:border-color .15s;-webkit-appearance:none;appearance:none}
+.form-grid .fld input:focus,.form-grid .fld select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.sale-info{background:var(--chip);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;line-height:1.8}
+.sale-info b{color:var(--primary)}
+.sale-current{font-size:1.6rem;font-weight:700;color:var(--ok)}
+.sale-warn{color:var(--no);font-weight:700}
+
+/* ===== Parts List Styles ===== */
+.cart-list-item{
+  display:flex;align-items:center;gap:10px;padding:12px;
+  border-bottom:1px solid var(--border);background:var(--card);transition:background .15s;
+}
+.cart-list-item:hover{background:var(--chip)}
+.cart-list-item .cart-info{flex:1;min-width:0}
+.cart-list-item .cart-name{font-weight:600;font-size:.88rem;margin-bottom:4px;color:var(--text);line-height:1.4}
+.cart-list-item .cart-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.cart-list-item .cart-num{
+  font-family:'Courier New',monospace;font-size:.72rem;background:var(--chip);color:var(--text);
+  padding:2px 7px;border-radius:5px;direction:ltr;text-align:left;display:inline-block;font-weight:600;
+}
+.cart-list-item .cart-remove{
+  background:#fee2e2;color:var(--no);border:none;width:36px;height:36px;border-radius:8px;
+  cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;touch-action:manipulation;transition:.15s;
+}
+.cart-list-item .cart-remove:hover{background:#fecaca;transform:scale(1.05)}
+[data-theme="dark"] .cart-list-item .cart-remove{background:#7f1d1d;color:#fca5a5}
+[data-theme="dark"] .cart-list-item .cart-remove:hover{background:#991b1b}
+
+.cart-empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.cart-empty-icon{font-size:2.5rem;margin-bottom:8px;opacity:.5}
+.cart-empty-text{font-size:.9rem}
+
+.cart-search-result{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;min-height:56px;
+}
+.cart-search-result:hover{background:var(--chip)}
+.cart-search-result .csr-info{flex:1;min-width:0}
+.cart-search-result .csr-name{font-weight:600;font-size:.85rem;margin-bottom:3px;color:var(--text)}
+.cart-search-result .csr-sub{
+  font-family:'Courier New',monospace;font-size:.72rem;color:var(--muted);
+  direction:ltr;text-align:left;margin-bottom:2px;
+}
+.cart-search-result .csr-add{
+  background:var(--ok);color:#fff;border:none;padding:7px 14px;border-radius:7px;
+  font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;
+  touch-action:manipulation;min-height:38px;
+}
+.cart-search-result .csr-add:active{transform:scale(.96)}
+.cart-search-result.added{opacity:.5;pointer-events:none}
+.cart-search-result.added .csr-add{background:var(--muted)}
+
+.cart-badge{
+  background:var(--no);color:#fff;font-size:.65rem;font-weight:700;
+  min-width:18px;height:18px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;padding:0 5px;margin-right:4px;
+}
+
+.btn-wa{background:#25D366;color:#fff;border:none}
+.btn-wa:hover{background:#1da851}
+
+/* ===== RTL/LTR body text direction ===== */
+[data-lang="en"] body{direction:ltr;text-align:left}
+[data-lang="en"] .fld label{text-align:left}
+[data-lang="en"] .detail-row{flex-direction:row}
+[data-lang="en"] .modal h2{padding-left:0;padding-right:36px;text-align:left}
+[data-lang="en"] .modal-close{left:auto;right:16px}
+[data-lang="en"] .pc-star{left:auto;right:10px}
+[data-lang="en"] .pc-name{padding-left:0;padding-right:24px}
+[data-lang="en"] .drop-zone .dz-sub{direction:ltr;text-align:center}
+[data-lang="en"] .fld select{background-position:right 12px center;padding-left:12px;padding-right:32px}
+
+@media(max-width:600px){
+  header{padding:14px 14px 18px;padding-top:calc(14px + env(safe-area-inset-top));padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right))}
+  .hdr-title{font-size:1.1rem}
+  .hdr-actions{gap:6px}
+  .icon-btn{padding:8px 10px;font-size:.78rem;flex:1;justify-content:center;min-width:0}
+  .stat-card{min-width:120px;padding:10px 14px}
+  .stat-value{font-size:1.3rem}
+  main{padding:14px;padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right));padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  #results{grid-template-columns:1fr;gap:10px}
+  .drop-zone{padding:20px 14px}
+  .form-grid{grid-template-columns:1fr}
+  .modal{padding:20px;max-height:92vh;max-height:92dvh}
+}
+
+@media(max-width:420px){
+  .hdr-actions{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;scrollbar-width:none}
+  .hdr-actions::-webkit-scrollbar{display:none}
+  .icon-btn{flex:0 0 auto;white-space:nowrap}
+}
+
+@supports(padding:max(0px)){
+  header{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+  main{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-row">
+    <div class="hdr-title">🔧 <span data-i18n="appTitle">Mazda Parts Finder</span> <span style="font-size:.7rem;opacity:.8;font-weight:400">Pro</span></div>
+    <div class="hdr-actions">
+      <button class="icon-btn" onclick="toggleTheme()" title="Theme"><span id="themeIcon">🌙</span></button>
+      <button class="icon-btn" onclick="toggleLanguage()" title="Language" style="background:rgba(168,85,247,.4)"><span id="langIcon">🌐</span> <span id="langLabel">EN</span></button>
+      <button class="icon-btn" onclick="openAddProduct()" style="background:rgba(34,197,94,.35)">➕ <span data-i18n="addProduct">إضافة منتج</span></button>
+      <button class="icon-btn" onclick="openSaleProduct()" style="background:rgba(245,158,11,.35)">🛒 <span data-i18n="saleProduct">بيع منتج</span></button>
+      <button class="icon-btn" onclick="openPartsList()" style="background:rgba(139,92,246,.4);position:relative">📋 <span data-i18n="partsList">قائمة القطع</span><span id="partsListBadge" class="cart-badge" style="display:none">0</span></button>
+      <button class="icon-btn" onclick="openImport()">📥 <span data-i18n="import">استيراد</span></button>
+      <button class="icon-btn" onclick="exportCSV()">📊 CSV</button>
+      <button class="icon-btn" onclick="printFiltered()">🖨️ <span data-i18n="print">طباعة</span></button>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-box">
+      <span style="font-size:1.1rem;color:#94a3b8;padding:0 8px">🔍</span>
+      <input id="q" type="text" placeholder="ابحث..." data-i18n-placeholder="searchPlaceholder" autocomplete="off" inputmode="search" enterkeyhint="search">
+      <kbd>/</kbd>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="statsBar" class="stats-bar hidden"></div>
+  <div id="chips" class="chips hidden"></div>
+  <div id="filtersPanel" class="filters hidden">
+    <div class="f-grid">
+      <div class="fld"><label data-i18n="model">الموديل</label><select id="fModel"></select></div>
+      <div class="fld"><label data-i18n="year">السنة</label><select id="fYear"></select></div>
+      <div class="fld"><label data-i18n="category">الفئة</label><select id="fCat"></select></div>
+      <div class="fld"><label data-i18n="brand">الماركة</label><select id="fBrand"></select></div>
+      <div class="fld"><label data-i18n="sort">الترتيب</label>
+        <select id="fSort">
+          <option value="stock" data-i18n="sortStock">الكمية (الأعلى أولاً)</option>
+          <option value="name" data-i18n="sortName">الاسم (أ–ي)</option>
+          <option value="part" data-i18n="sortPart">رقم القطعة</option>
+          <option value="model" data-i18n="sortModel">الموديل</option>
+          <option value="loc" data-i18n="sortLoc">الموقع</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div id="results"></div>
+</main>
+
+<!-- Import Modal -->
+<div id="importModal" class="modal-bg">
+  <div class="modal" style="max-width:700px">
+    <button class="modal-close" onclick="closeImport()">✕</button>
+    <h2>📥 <span data-i18n="importTitle">استيراد بيانات Excel</span></h2>
+
+    <div id="dropZone" class="drop-zone" onclick="document.getElementById('xlsxInput').click()">
+      <span class="dz-icon">📊</span>
+      <div class="dz-title" data-i18n="dropTitle">اسحب ملف .xlsx أو .xls هنا</div>
+      <div class="dz-sub" data-i18n="dropSub">أو اضغط للاختيار من الجهاز — يدعم أيضاً CSV و TSV</div>
+      <input type="file" id="xlsxInput" accept=".xlsx,.xls,.csv,.tsv,.txt" style="display:none">
+    </div>
+
+    <div class="divider" data-i18n="orPaste">أو الصق بيانات Excel يدوياً</div>
+
+    <textarea id="pasteArea" class="import-area" placeholder="افتح Excel → Ctrl+A → Ctrl+C → الصق هنا" data-i18n-placeholder="pastePlaceholder"></textarea>
+
+    <div class="import-actions">
+      <button class="btn btn-p" id="importBtn" onclick="doImportPaste()">📥 <span data-i18n="importFromText">استيراد من النص</span></button>
+      <button class="btn btn-r" onclick="clearAll()" style="margin-right:auto"><span data-i18n="deleteAll">🗑️ حذف الكل</span></button>
+    </div>
+
+    <div id="progress" class="progress"><div id="progressBar" class="progress-bar"></div></div>
+    <div id="healthCheck" class="health hidden"></div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="modal-bg" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeDetail()">✕</button>
+    <h2 id="detailTitle"></h2>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<!-- Add Product Modal -->
+<div id="addModal" class="modal-bg" onclick="if(event.target===this)closeAdd()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAdd()">✕</button>
+    <h2>➕ <span data-i18n="addTitle">إضافة منتج جديد</span></h2>
+    <div class="form-grid">
+      <div class="fld full"><label data-i18n="name">اسم القطعة *</label><input id="addName" type="text" placeholder="..." autocomplete="off"></div>
+      <div class="fld full"><label data-i18n="partNumber">رقم القطعة *</label><input id="addPart" type="text" placeholder="PE01-14-302" style="direction:ltr;text-align:left;font-family:'Courier New',monospace" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="model">الموديل</label><input id="addModel" type="text" placeholder="CX-5 / Mazda 6..." list="modelSuggest" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="brand">الماركة</label><input id="addBrand" type="text" placeholder="Mazda" list="brandSuggest" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="category">الفئة</label><input id="addCat" type="text" placeholder="..." list="catSuggest" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="quantity">الكمية *</label><input id="addQty" type="number" min="0" value="1" inputmode="numeric"></div>
+      <div class="fld"><label data-i18n="location">الموقع</label><input id="addLoc" type="text" placeholder="A-1-2" style="direction:ltr;text-align:left;font-family:'Courier New',monospace" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="yearFrom">السنة (من)</label><input id="addY1" type="number" min="0" placeholder="2015" inputmode="numeric"></div>
+      <div class="fld"><label data-i18n="yearTo">السنة (إلى)</label><input id="addY2" type="number" min="0" placeholder="2020" inputmode="numeric"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-p" onclick="saveNewProduct()" style="flex:1">💾 <span data-i18n="save">حفظ المنتج</span></button>
+      <button class="btn btn-g" onclick="closeAdd()" data-i18n="cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sale Product Modal -->
+<div id="saleModal" class="modal-bg" onclick="if(event.target===this)closeSale()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeSale()">✕</button>
+    <h2>🛒 <span data-i18n="saleTitle">بيع منتج</span></h2>
+    <div class="fld full" style="margin-bottom:14px">
+      <label data-i18n="searchPart">ابحث عن القطعة</label>
+      <input id="saleSearch" type="text" placeholder="..." oninput="saleSearchChanged()" autocomplete="off">
+    </div>
+    <div id="saleResults" style="max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1.5px solid var(--border);border-radius:10px;margin-bottom:14px"></div>
+    <div id="saleSelectedBox" class="hidden">
+      <div class="sale-info" id="saleInfo"></div>
+      <div class="form-grid">
+        <div class="fld full"><label data-i18n="quantitySold">الكمية المباعة *</label><input id="saleQty" type="number" min="1" value="1" inputmode="numeric"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-p" onclick="confirmSale()" style="flex:1;background:var(--warn)">✅ <span data-i18n="confirmSale">تأكيد البيع</span></button>
+        <button class="btn btn-g" onclick="resetSaleSelection()" data-i18n="change">تغيير</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Parts List Modal -->
+<div id="partsListModal" class="modal-bg" onclick="if(event.target===this)closePartsList()">
+  <div class="modal" style="max-width:680px">
+    <button class="modal-close" onclick="closePartsList()">✕</button>
+    <h2>📋 <span data-i18n="partsListTitle">قائمة القطع</span></h2>
+
+    <div class="fld full" style="margin-bottom:14px">
+      <label data-i18n="searchAddParts">🔍 ابحث وأضف القطع للقائمة</label>
+      <input id="plSearch" type="text" placeholder="..." oninput="partsListSearchChanged()" autocomplete="off">
+    </div>
+
+    <div id="plSearchResults" style="max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1.5px solid var(--border);border-radius:10px;margin-bottom:16px"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:1rem;color:var(--text)" data-i18n="addedParts">🛍️ القطع المضافة</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-wa" onclick="sharePartsListWhatsApp()" style="padding:6px 12px;min-height:34px;font-size:.8rem">📤 <span data-i18n="whatsapp">واتساب</span></button>
+        <button class="btn btn-r" onclick="clearPartsList()" style="padding:6px 12px;min-height:34px;font-size:.8rem"><span data-i18n="clearAll">🗑️ مسح الكل</span></button>
+      </div>
+    </div>
+
+    <div id="plCart" style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;max-height:320px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div id="editModal" class="modal-bg" onclick="if(event.target===this)closeEdit()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeEdit()">✕</button>
+    <h2>✏️ <span data-i18n="editTitle">تعديل المنتج</span></h2>
+    <div class="form-grid">
+      <div class="fld full"><label data-i18n="name">اسم القطعة *</label><input id="editName" type="text" autocomplete="off"></div>
+      <div class="fld full"><label data-i18n="partNumber">رقم القطعة *</label><input id="editPart" type="text" style="direction:ltr;text-align:left;font-family:'Courier New',monospace" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="model">الموديل</label><input id="editModel" type="text" list="modelSuggest" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="brand">الماركة</label><input id="editBrand" type="text" list="brandSuggest" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="category">الفئة</label><input id="editCat" type="text" list="catSuggest" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="quantity">الكمية *</label><input id="editQty" type="number" min="0" value="1" inputmode="numeric"></div>
+      <div class="fld"><label data-i18n="location">الموقع</label><input id="editLoc" type="text" style="direction:ltr;text-align:left;font-family:'Courier New',monospace" autocomplete="off"></div>
+      <div class="fld"><label data-i18n="yearFrom">السنة (من)</label><input id="editY1" type="number" min="0" inputmode="numeric"></div>
+      <div class="fld"><label data-i18n="yearTo">السنة (إلى)</label><input id="editY2" type="number" min="0" inputmode="numeric"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-p" onclick="saveEditProduct()" style="flex:1">💾 <span data-i18n="saveChanges">حفظ التغييرات</span></button>
+      <button class="btn btn-g" onclick="closeEdit()" data-i18n="cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="modelSuggest"></datalist>
+<datalist id="brandSuggest"></datalist>
+<datalist id="catSuggest"></datalist>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================================================
+   1. STATE
+   ============================================================ */
+const STORE = 'mazda_parts_pro_v2';
+const FAV_STORE = 'mazda_favs_v2';
+const THEME_STORE = 'mazda_theme_v2';
+const IMAGES_STORE = 'mazda_images_v1';
+const PARTS_LIST_STORE = 'mazda_parts_list_v1';
+const LANG_STORE = 'mazda_lang_v1';
+
+// ☁️ CLOUDINARY CONFIGURATION
+const CLOUDINARY_CLOUD_NAME = 'kcmso0s71';
+const CLOUDINARY_UPLOAD_PRESET = 'nishti_kutu';
+
+let PARTS = [];
+let FAVS = new Set();
+let IMAGES = {};
+let PARTS_LIST = [];
+let FILTERED = [];
+let renderedCount = 0;
+let activeChip = 'all';
+const PAGE_SIZE = 60;
+let io = null;
+let editingPartNo = null;
+let currentLang = 'ar';
+
+/* ============================================================
+   2. TRANSLATIONS DICTIONARY
+   ============================================================ */
+const TRANSLATIONS = {
+  ar: {
+    appTitle: 'Mazda Parts Finder', addProduct: 'إضافة منتج', saleProduct: 'بيع منتج',
+    partsList: 'قائمة القطع', import: 'استيراد', print: 'طباعة',
+    searchPlaceholder: 'ابحث بالاسم أو رقم القطعة أو الموديل...',
+    model: 'الموديل', year: 'السنة', category: 'الفئة', brand: 'الماركة', sort: 'الترتيب',
+    sortStock: 'الكمية (الأعلى أولاً)', sortName: 'الاسم (أ–ي)', sortPart: 'رقم القطعة',
+    sortModel: 'الموديل', sortLoc: 'الموقع', allModels: 'كل الموديلات', allYears: 'كل السنوات',
+    allCategories: 'كل الفئات', allBrands: 'كل الماركات',
+    importTitle: 'استيراد بيانات Excel', dropTitle: 'اسحب ملف .xlsx أو .xls هنا',
+    dropSub: 'أو اضغط للاختيار من الجهاز — يدعم أيضاً CSV و TSV',
+    orPaste: 'أو الصق بيانات Excel يدوياً', pastePlaceholder: 'افتح Excel → Ctrl+A → Ctrl+C → الصق هنا',
+    importFromText: 'استيراد من النص', deleteAll: '🗑️ حذف الكل',
+    addTitle: 'إضافة منتج جديد', name: 'اسم القطعة *', partNumber: 'رقم القطعة *',
+    quantity: 'الكمية *', location: 'الموقع', yearFrom: 'السنة (من)', yearTo: 'السنة (إلى)',
+    save: 'حفظ المنتج', cancel: 'إلغاء', saleTitle: 'بيع منتج',
+    searchPart: 'ابحث عن القطعة (بالاسم أو الرقم)', quantitySold: 'الكمية المباعة *',
+    confirmSale: 'تأكيد البيع', change: 'تغيير', partsListTitle: 'قائمة القطع',
+    searchAddParts: '🔍 ابحث وأضف القطع للقائمة', addedParts: '🛍️ القطع المضافة',
+    whatsapp: 'واتساب', clearAll: '🗑️ مسح الكل', editTitle: 'تعديل المنتج', saveChanges: 'حفظ التغييرات',
+    totalParts: 'إجمالي القطع', inStock: 'في المخزن', totalQty: 'إجمالي الكمية',
+    modelsCount: 'الموديلات', categoriesCount: 'الفئات',
+    all: '📦 الكل', available: '✅ متوفر', favorites: '⭐ مفضلة', mazda: '🔧 مازدا',
+    noResults: 'لا توجد نتائج', tryOtherSearch: 'جرب البحث بكلمات أخرى أو تغيير الفلاتر',
+    allYearsLabel: 'كل السنوات', notAvailable: '❌ غير متوفر',
+    uploadImage: '📷 رفع صورة', noImage: 'لا توجد صورة',
+    partNumberDetail: 'رقم القطعة', modelDetail: 'الموديل', brandDetail: 'الماركة',
+    categoryDetail: 'الفئة', yearsDetail: 'السنوات', quantityDetail: 'الكمية', locationDetail: 'الموقع',
+    copy: '📋 نسخ', favorite: '☆ مفضلة', unfavorite: '★ إزالة', edit: '✏️ تعديل', delete: '🗑️ حذف',
+    confirmDeleteMsg: '⚠️ هل أنت متأكد من حذف هذه القطعة؟\n\nسيتم حذف القطعة نهائياً من النظام (بما فيها الصورة).',
+    partAdded: 'تم إضافة القطعة للقائمة', partExists: 'هذه القطعة موجودة بالفعل في القائمة',
+    partRemoved: 'تم الحذف من القائمة', listEmpty: 'القائمة فارغة', listCleared: 'تم مسح القائمة',
+    emptyCart: 'لم تتم إضافة أي قطع بعد', emptyCartHint: 'ابحث أعلاه وأضف القطع المطلوبة',
+    addBtn: '➕ إضافة', addedBtn: '✓ مضاف', searchHint: 'اكتب اسم أو رقم قطعة للبحث',
+    copySuccess: 'تم النسخ', imageSaved: 'تم حفظ الصورة بنجاح', imageError: 'تعذر قراءة الصورة',
+    noParts: 'لا توجد منتجات', saleSuccess: 'تم بيع', remaining: 'المتبقي', soldOut: 'نفذت الكمية',
+    invalidQty: 'أدخل كمية صحيحة', onlyAvailable: 'الكمية المتوفرة فقط', selectPart: 'اختر قطعة أولاً',
+    deleteConfirm: 'حذف جميع البيانات والمفضلة؟', importSuccess: 'تم استيراد',
+    partAdded2: 'تم إضافة', partUpdated: 'تم تحديث', partDeleted: 'تم حذف', partEdited: 'تم تعديل',
+    partExistsInList: 'هذه القطعة موجودة بالفعل', storageFull: 'مساحة التخزين ممتلئة',
+    openWhatsApp: 'تم فتح واتساب — اختر جهة الاتصال', whatsappError: 'تعذر فتح واتساب',
+    emptyListWhatsApp: 'القائمة فارغة — أضف قطعاً أولاً', editNotFound: 'لم يتم العثور على القطعة',
+    editError: 'حدث خطأ أثناء التعديل', partNumberExists: 'رقم القطعة موجود بالفعل لقطعة أخرى',
+    confirmSaleSuccess: 'تم البيع', listHeader: '📋 قائمة القطع المطلوبة',
+    listTotal: 'إجمالي القطع', listDate: 'التاريخ', partNumShort: 'رقم', modelShort: 'موديل', locShort: 'موقع',
+    uploading: 'جاري رفع الصورة...', uploadSuccess: 'تم رفع الصورة بنجاح', uploadFailed: 'فشل رفع الصورة'
+  },
+  en: {
+    appTitle: 'Mazda Parts Finder', addProduct: 'Add Product', saleProduct: 'Sale Product',
+    partsList: 'Parts List', import: 'Import', print: 'Print',
+    searchPlaceholder: 'Search by name, part number or model...',
+    model: 'Model', year: 'Year', category: 'Category', brand: 'Brand', sort: 'Sort',
+    sortStock: 'Quantity (highest first)', sortName: 'Name (A-Z)', sortPart: 'Part Number',
+    sortModel: 'Model', sortLoc: 'Location', allModels: 'All Models', allYears: 'All Years',
+    allCategories: 'All Categories', allBrands: 'All Brands',
+    importTitle: 'Import Excel Data', dropTitle: 'Drag .xlsx or .xls file here',
+    dropSub: 'Or click to browse — also supports CSV and TSV',
+    orPaste: 'Or paste Excel data manually', pastePlaceholder: 'Open Excel → Ctrl+A → Ctrl+C → Paste here',
+    importFromText: 'Import from Text', deleteAll: '🗑️ Delete All',
+    addTitle: 'Add New Product', name: 'Part Name *', partNumber: 'Part Number *',
+    quantity: 'Quantity *', location: 'Location', yearFrom: 'Year (From)', yearTo: 'Year (To)',
+    save: 'Save Product', cancel: 'Cancel', saleTitle: 'Sell Product',
+    searchPart: 'Search for part (by name or number)', quantitySold: 'Quantity Sold *',
+    confirmSale: 'Confirm Sale', change: 'Change', partsListTitle: 'Parts List',
+    searchAddParts: '🔍 Search and add parts to list', addedParts: '🛍️ Added Parts',
+    whatsapp: 'WhatsApp', clearAll: '🗑️ Clear All', editTitle: 'Edit Product', saveChanges: 'Save Changes',
+    totalParts: 'Total Parts', inStock: 'In Stock', totalQty: 'Total Quantity',
+    modelsCount: 'Models', categoriesCount: 'Categories',
+    all: '📦 All', available: '✅ Available', favorites: '⭐ Favorites', mazda: '🔧 Mazda',
+    noResults: 'No Results', tryOtherSearch: 'Try other keywords or change filters',
+    allYearsLabel: 'All Years', notAvailable: '❌ Not Available',
+    uploadImage: '📷 Upload Image', noImage: 'No Image',
+    partNumberDetail: 'Part Number', modelDetail: 'Model', brandDetail: 'Brand',
+    categoryDetail: 'Category', yearsDetail: 'Years', quantityDetail: 'Quantity', locationDetail: 'Location',
+    copy: '📋 Copy', favorite: '☆ Favorite', unfavorite: '★ Remove', edit: '✏️ Edit', delete: '🗑️ Delete',
+    confirmDeleteMsg: '⚠️ Are you sure you want to delete this part?\n\nIt will be permanently removed from the system (including image).',
+    partAdded: 'Part added to list', partExists: 'This part is already in the list',
+    partRemoved: 'Removed from list', listEmpty: 'List is empty', listCleared: 'List cleared',
+    emptyCart: 'No parts added yet', emptyCartHint: 'Search above and add the required parts',
+    addBtn: '➕ Add', addedBtn: '✓ Added', searchHint: 'Type part name or number to search',
+    copySuccess: 'Copied', imageSaved: 'Image saved successfully', imageError: 'Could not read image',
+    noParts: 'No products', saleSuccess: 'Sold', remaining: 'Remaining', soldOut: 'Out of stock',
+    invalidQty: 'Enter a valid quantity', onlyAvailable: 'Only available quantity', selectPart: 'Select a part first',
+    deleteConfirm: 'Delete all data and favorites?', importSuccess: 'Imported',
+    partAdded2: 'Added', partUpdated: 'Updated', partDeleted: 'Deleted', partEdited: 'Edited',
+    partExistsInList: 'This part already exists', storageFull: 'Storage full',
+    openWhatsApp: 'WhatsApp opened — choose contact', whatsappError: 'Could not open WhatsApp',
+    emptyListWhatsApp: 'List is empty — add parts first', editNotFound: 'Part not found',
+    editError: 'Error during edit', partNumberExists: 'Part number already exists for another part',
+    confirmSaleSuccess: 'Sold', listHeader: '📋 Required Parts List',
+    listTotal: 'Total Parts', listDate: 'Date', partNumShort: 'No.', modelShort: 'Model', locShort: 'Loc',
+    uploading: 'Uploading image...', uploadSuccess: 'Image uploaded successfully', uploadFailed: 'Image upload failed'
+  }
+};
+
+function t(key) {
+  return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || key;
+}
+
+/* ============================================================
+   3. DOM REFERENCES
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+const qEl = $('q');
+const resultsEl = $('results');
+const statsBar = $('statsBar');
+const chipsEl = $('chips');
+const filtersPanel = $('filtersPanel');
+const importModal = $('importModal');
+const detailModal = $('detailModal');
+const pasteArea = $('pasteArea');
+const importBtn = $('importBtn');
+const progressEl = $('progress');
+const progressBar = $('progressBar');
+const healthCheck = $('healthCheck');
+const dropZone = $('dropZone');
+const xlsxInput = $('xlsxInput');
+const themeIcon = $('themeIcon');
+const toastEl = $('toast');
+
+const fModel = $('fModel');
+const fYear = $('fYear');
+const fCat = $('fCat');
+const fBrand = $('fBrand');
+const fSort = $('fSort');
+
+/* ============================================================
+   4. LANGUAGE FUNCTIONS
+   ============================================================ */
+function applyLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.setAttribute('data-lang', lang);
+  document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', lang);
+  try { localStorage.setItem(LANG_STORE, lang); } catch(e) {}
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (key) el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (key) el.placeholder = t(key);
+  });
+
+  const langLabel = $('langLabel');
+  if (langLabel) langLabel.textContent = lang === 'ar' ? 'EN' : 'ع';
+
+  buildDropdowns();
+  buildChips();
+  updateStats();
+  render();
+  fillSuggestions();
+
+  if ($('partsListModal') && $('partsListModal').classList.contains('show')) {
+    doPartsListSearch();
+    renderPartsListCart();
+  }
+}
+
+function toggleLanguage() {
+  const next = currentLang === 'ar' ? 'en' : 'ar';
+  applyLanguage(next);
+  toast(next === 'ar' ? '✅ تم التغيير إلى العربية' : '✅ Switched to English');
+}
+
+function initLanguage() {
+  let lang = 'ar';
+  try { lang = localStorage.getItem(LANG_STORE) || 'ar'; } catch(e){}
+  if (lang !== 'ar' && lang !== 'en') lang = 'ar';
+  applyLanguage(lang);
+}
+
+/* ============================================================
+   5. FILE HANDLING
+   ============================================================ */
+async function handleFile(file) {
+  showProgress(10);
+  const name = file.name.toLowerCase();
+
+  try {
+    let parts;
+
+    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      if (typeof XLSX === 'undefined') {
+        throw new Error('Excel library (SheetJS) not loaded. Check internet or use paste feature.');
+      }
+      showProgress(25);
+      const buf = await file.arrayBuffer();
+      showProgress(45);
+      const wb = XLSX.read(buf, {type: 'array', cellDates: false, cellNF: false});
+      showProgress(65);
+
+      let allRows = [];
+      wb.SheetNames.forEach((sheetName, idx) => {
+        const sheet = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, {
+          header: 1, defval: '', raw: false, blankrows: false
+        });
+        if (idx === 0) allRows = rows;
+        else allRows = allRows.concat(rows);
+      });
+      showProgress(80);
+      parts = parseRows(allRows);
+    } else {
+      showProgress(40);
+      const text = await file.text();
+      showProgress(70);
+      parts = parseRaw(text);
+    }
+
+    showProgress(95);
+    finishImport(parts, file.name);
+  } catch (err) {
+    console.error(err);
+    showHealth({error: 'File read error: ' + err.message});
+    showProgress(0);
+  }
+}
+
+function showProgress(pct) {
+  if (!progressEl || !progressBar) return;
+  if (pct === 0) {
+    progressEl.classList.remove('show');
+    progressBar.style.width = '0%';
+    return;
+  }
+  progressEl.classList.add('show');
+  progressBar.style.width = pct + '%';
+}
+
+/* ============================================================
+   6. PARSERS
+   ============================================================ */
+function parseRows(rows) {
+  if (!rows || !rows.length) return [];
+
+  const cleanRows = rows.map(r => {
+    if (!Array.isArray(r)) return [];
+    return r.map(c => c === null || c === undefined ? '' : String(c));
+  }).filter(r => r.some(c => c.trim()));
+
+  if (!cleanRows.length) return [];
+
+  const headerMap = findHeader(cleanRows);
+  const parts = [];
+  const startRow = headerMap ? headerMap.row + 1 : 0;
+
+  for (let i = startRow; i < cleanRows.length; i++) {
+    const r = cleanRows[i];
+    let name, partNo, qty, loc, note;
+
+    if (headerMap && headerMap.cols) {
+      const c = headerMap.cols;
+      name = c.name !== undefined ? cleanTxt(r[c.name]) : '';
+      partNo = c.partNo !== undefined ? cleanTxt(r[c.partNo]) : '';
+      qty = c.qty !== undefined ? (parseInt(String(r[c.qty] || '0').trim(), 10) || 0) : 0;
+      loc = c.loc !== undefined ? cleanTxt(r[c.loc]) : '';
+      note = c.note !== undefined ? cleanTxt(r[c.note]) : '';
+    } else {
+      if (r.length >= 9) {
+        note = cleanTxt(r[2]);
+        qty = parseInt(String(r[3] || '0').trim(), 10) || 0;
+        loc = cleanTxt(r[4]);
+        name = cleanTxt(r[5]);
+        partNo = cleanTxt(r[8]);
+      } else if (r.length >= 5) {
+        const off = r.length - 5;
+        note = cleanTxt(r[off]);
+        qty = parseInt(String(r[off+1] || '0').trim(), 10) || 0;
+        loc = cleanTxt(r[off+2]);
+        name = cleanTxt(r[off+3]);
+        partNo = cleanTxt(r[off+4]);
+      } else {
+        continue;
+      }
+    }
+
+    if (!name && !partNo) continue;
+    if (isHeaderRow([note, qty, loc, name, partNo])) continue;
+
+    const model = detectModel(name);
+    const brand = detectBrand(name);
+    const category = detectCategory(name);
+    const [y1, y2] = detectYears(name);
+
+    parts.push({
+      n: name || '(no name)', p: partNo || '(no number)',
+      m: model, b: brand, c: category, y1, y2, s: qty, l: loc || note
+    });
+  }
+  return parts;
+}
+
+function parseRaw(raw) {
+  if (!raw || !raw.trim()) return [];
+  const firstLine = raw.split(/\r?\n/)[0] || '';
+  let delim = '\t';
+  if (firstLine.indexOf('\t') === -1) {
+    if (firstLine.indexOf('|') !== -1) delim = '|';
+    else if (firstLine.indexOf(',') !== -1) delim = ',';
+  }
+  const lines = raw.split(/\r?\n/).filter(l => l.trim());
+  const rows = lines.map(l => splitLine(l, delim));
+  return parseRows(rows);
+}
+
+function splitLine(line, delim) {
+  if (delim === ',') {
+    const out = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (c === ',' && !inQ) { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+    out.push(cur); return out;
+  }
+  return line.split(delim);
+}
+
+function findHeader(rows) {
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+    const r = rows[i];
+    const cols = {};
+    r.forEach((cell, idx) => {
+      const t2 = (cell || '').trim();
+      if (/^رقم\s*الصنف/.test(t2)) cols.partNo = idx;
+      if (/^اسم\s*الصنف/.test(t2)) cols.name = idx;
+      if (/^الكمية/.test(t2)) cols.qty = idx;
+      if (/^الموقع/.test(t2)) cols.loc = idx;
+      if (/^ملاحظة/.test(t2)) cols.note = idx;
+    });
+    if (cols.partNo !== undefined && cols.name !== undefined) {
+      return { row: i, cols };
+    }
+  }
+  return null;
+}
+
+function isHeaderRow(vals) {
+  return vals.some(v => /^(رقم الصنف|اسم الصنف|الكمية|الموقع|ملاحظة|مواقع الاصناف)$/.test(String(v || '').trim()));
+}
+
+function cleanTxt(s) {
+  if (s === undefined || s === null) return '';
+  return String(s)
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/* ============================================================
+   7. DETECTION
+   ============================================================ */
+const MODELS = [
+  {re:/CX[\s\-]?90/i, name:'CX-90'}, {re:/CX[\s\-]?60/i, name:'CX-60'},
+  {re:/CX[\s\-]?30/i, name:'CX-30'}, {re:/CX[\s\-]?9(?!\d)/i, name:'CX-9'},
+  {re:/CX[\s\-]?7(?!\d)/i, name:'CX-7'}, {re:/CX[\s\-]?5(?!\d)/i, name:'CX-5'},
+  {re:/CX[\s\-]?3(?!\d)/i, name:'CX-3'}, {re:/BT[\s\-]?50|BT50/i, name:'BT-50'},
+  {re:/B[\s\-]?2600|B2600/i, name:'B2600'}, {re:/B[\s\-]?2200|B2200/i, name:'B2200'},
+  {re:/\bMX[\s\-]?5\b/i, name:'MX-5'}, {re:/\b929\b/, name:'929'},
+  {re:/\b626\b/, name:'626'}, {re:/\b323\b/, name:'323'},
+  {re:/مازدا\s*6|Mazda\s*6/i, name:'Mazda 6'}, {re:/مازدا\s*3|Mazda\s*3/i, name:'Mazda 3'},
+  {re:/مازدا\s*2|Mazda\s*2/i, name:'Mazda 2'}, {re:/النترا|إلنترا|النتراء|Elantra/i, name:'Elantra'},
+  {re:/اكسنت|أكسنت|Accent/i, name:'Accent'}, {re:/سوناتا|Sonata/i, name:'Sonata'},
+  {re:/توسان|Tucson/i, name:'Tucson'}, {re:/سنتافي|سنتافيه|Santa\s*Fe/i, name:'Santa Fe'},
+  {re:/كريتا|Creta/i, name:'Creta'}, {re:/اتش\s*وان|H[\s\-]?1\b/i, name:'H1'},
+  {re:/H[\s\-]?100/i, name:'H100'}, {re:/ازيرا|أزيرا|Azera/i, name:'Azera'},
+  {re:/جينسس|جينيسيس|Genesis/i, name:'Genesis'}, {re:/فيركروز|Veracruz/i, name:'Veracruz'},
+  {re:/ستاريا|ستاريكس|Staria|Starex/i, name:'Staria/Starex'}, {re:/كونا|Kona/i, name:'Kona'},
+  {re:/فيلوستر|Veloster/i, name:'Veloster'}, {re:/\bi10\b/i, name:'i10'},
+  {re:/\bi20\b/i, name:'i20'}, {re:/\bi30\b/i, name:'i30'},
+  {re:/سورينتو|سورنتو|Sorento/i, name:'Sorento'}, {re:/كرنفال|Carnival/i, name:'Carnival'},
+  {re:/اوبتيما|أوبتيما|ابتيما|Optima/i, name:'Optima'}, {re:/سبورتاج|سوبرتاج|Sportage/i, name:'Sportage'},
+  {re:/\bريو\b|Rio/i, name:'Rio'}, {re:/بيكانتو|Picanto/i, name:'Picanto'},
+  {re:/موهافي|Mohave/i, name:'Mohave'}, {re:/كادينزا|Cadenza/i, name:'Cadenza'},
+  {re:/سيراتو|Cerato/i, name:'Cerato'}, {re:/سول\b|Soul/i, name:'Soul'},
+  {re:/\bK5\b/, name:'K5'}, {re:/\bK8\b/, name:'K8'},
+  {re:/هايلكس|هايلوكس|Hilux/i, name:'Hilux'}, {re:/انوفا|إنوفا|Innova/i, name:'Innova'},
+  {re:/فورتشنر|فورشنر|Fortuner/i, name:'Fortuner'}, {re:/كروز|Cruze/i, name:'Cruze'},
+  {re:/سبارك|Spark/i, name:'Spark'}, {re:/افيو|Aveo/i, name:'Aveo'},
+  {re:/اوبترا|Optra/i, name:'Optra'}, {re:/ابيكا|Epica/i, name:'Epica'},
+  {re:/باجيرو|Pajero/i, name:'Pajero'}, {re:/مازدا|Mazda/i, name:'Mazda (عام)'},
+];
+
+function detectModel(name) {
+  for (const m of MODELS) if (m.re.test(name)) return m.name;
+  if (/زيت|فلتر|بواجي|ماء|شحم|غراء|معجون|منظف|بخاخ|سائل|قفيز|كلبس|برشام|فلود/i.test(name)) return 'عام';
+  return 'عام';
+}
+
+function detectBrand(name) {
+  if (/هيونداي|هيونداى|هيوندا|Hyundai/i.test(name)) return 'Hyundai';
+  if (/\bكيا\b|كياء|Kia/i.test(name)) return 'Kia';
+  if (/تويوتا|Toyota/i.test(name)) return 'Toyota';
+  if (/فورد|Ford/i.test(name)) return 'Ford';
+  if (/شيفروليه|Chevrolet|GM|جنرال/i.test(name)) return 'Chevrolet';
+  if (/ميتسوبيشي|Mitsubishi/i.test(name)) return 'Mitsubishi';
+  if (/نيسان|Nissan/i.test(name)) return 'Nissan';
+  if (/بيجو|Peugeot/i.test(name)) return 'Peugeot';
+  if (/رينو|Renault/i.test(name)) return 'Renault';
+  if (/^(زيت|ماء|شحم|غراء|معجون|منظف|بخاخ|سائل|موية|مويه)/i.test(name)) return 'عام';
+  return 'Mazda';
+}
+
+const CATEGORIES = [
+  {name:'فلاتر', kw:['فلتر','صفاية','صفايه','فلترا']},
+  {name:'محرك', kw:['بستم','شنبر','سبايك','سبيكة','هلال','كرنك','وجة راس','وجه راس','غطاء بلوف','جنزير','تيمن','شداد','شحاط','طرمبة زيت','بلف حراره','بلف حرارة','كويل','بواجي','بخاخ','سير مكينه','كرتير','كارتير','راس مكينة','بلوف','تكايات','شخال','بلف بخار','بلف التبخير','بلف البخار','عيار الزيت','وجه غطاء','غطاء بلوف','وجه غطا']},
+  {name:'قير وكلتش', kw:['دسك','صحن','كلتش','فحمة كلتش','فحمه كلتش','علبة كلتش','علبه كلتش','صوفة قير','صوفه قير','كرتير قير','كارتير قير','كرتير القير','كارتير القير','فلتر قير','فلتر زيت القير','مبرد القير','مبرد زيت القير']},
+  {name:'تعليق ومقصات', kw:['مقص','كرسي مساعد','كراسي مساعد','مساعد امامي','مساعد خلفي','مساعدين','مسمار توازن','مسمار التوازن','جلدة توازن','جلده توازن','جلود توازن','ياي','رمان كرسي','كمر','دنقل','كرسي مكينه','كرسي مكينة','كرسي جير','كرسي قير','قاعدة كرسي','مسمار كفر','بطانة مقص','جلبة مقص','جلبه مقص']},
+  {name:'توجيه', kw:['دركسون','دودة دركسون','علبة دركسون','علبه دركسون','طرمبة دركسون','ذراع دركسون','كوع دركسون']},
+  {name:'فرامل', kw:['قماش','فحمات','فحمة','هوب','كليبر','سلندر فرامل','علبة فرامل','باكم','بريك','جلنط','فرامل']},
+  {name:'تبريد وتكييف', kw:['رديتر','لديتر','راديتر','ثلاجة','ثلاجه','كمبروسر','كمبرسر','مكيف','مروحة','مروحه','خرطوش','مبرد','قربة','قربه','ترموستات','ثيرموستات','بلف مكيف','فلتر مكيف','ريداتير']},
+  {name:'كهرباء', kw:['كويل','حساس','شريحة','سوتش','دينمو','سلف','ضفيرة','ضفيره','لمبة','لمبه','بوري','بطارية','ظفيرة','ظفيره','كمبيوتر','مفتاح','شمعات','بلف بخار كهرب']},
+  {name:'بودي', kw:['صدام','رفرف','كبوت','باب','شنطة','شنطه','شبك','شمعة','شمعه','اسطب','إسطب','كشاف','مراية','مرايا','ديكور','كلبس','غطاء شنكار','غطأ شنكار','عظمة','عضمه','بطانة','بطانه','حشوة','فيبر','زجاج','قزاز','مساحة','مساحه','مفصلة','مفصله','قفل','سنتر لوك','يد باب','يد اشارة','بوري','جناح']},
+  {name:'عكوس ودبل', kw:['عكس','دبل','دفرنس','فلنجة','فلنجه','رمان هوب','صوفة عكس','صوفه عكس','عمود كردان','كردان','شيال','صليب عمود']},
+  {name:'زيوت وسوائل', kw:['زيت','ماء','شحم','غراء','معجون','منظف','بخاخ','سائل','موية','مويه','ATF','فلود','فريون']},
+  {name:'جلب وربلات', kw:['جلبة','جلبه','جلده','جلدة','ربلة','ربله','ربلات']},
+];
+
+function detectCategory(name) {
+  const lower = name.toLowerCase();
+  for (const c of CATEGORIES) {
+    for (const kw of c.kw) {
+      if (lower.includes(kw.toLowerCase())) return c.name;
+    }
+  }
+  return 'أخرى';
+}
+
+function detectYears(name) {
+  const isOil = /زيت|oil|هيلكس|هليكس|كاسترول|موبيل|ATF|فلود|شحم|منظف|سائل|فريون/i.test(name);
+  let m = name.match(/(19\d{2}|20\d{2})\s*(?:[-–\/]|إلى|الى|to)\s*(19\d{2}|20\d{2})/i);
+  if (m) return [parseInt(m[1]), parseInt(m[2])];
+  let m4 = name.match(/\b(19\d{2}|20\d{2})\b/);
+  let m2 = name.match(/\b(\d{2})\s*[-–\/]\s*(\d{2})\b/);
+  if (m2) {
+    const a = parseInt(m2[1]), b = parseInt(m2[2]);
+    const isVisc = isOil && [0,5,10,15,20].includes(a) && [20,30,40,50,60].includes(b);
+    if (!isVisc) {
+      const ya = a < 80 ? a + 2000 : a + 1900;
+      const yb = b < 80 ? b + 2000 : b + 1900;
+      return [ya, yb];
+    }
+  }
+  if (m4) { const y = parseInt(m4[1]); return [y, y]; }
+  let mA = name.match(/\bم\s*(\d{2})\b/);
+  if (mA) {
+    const y = parseInt(mA[1]);
+    if (y >= 80) return [y + 1900, y + 1900];
+    if (y <= 30) return [y + 2000, y + 2000];
+  }
+  return [0, 9999];
+}
+
+/* ============================================================
+   8. STORAGE
+   ============================================================ */
+function saveAll() {
+  try { localStorage.setItem(STORE, JSON.stringify(PARTS)); }
+  catch(e){ console.warn('storage full', e); try { toast(t('storageFull')); } catch(_) {} }
+}
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (!raw) return false;
+    const p = JSON.parse(raw);
+    if (!Array.isArray(p) || !p.length) return false;
+    PARTS = p; return true;
+  } catch(e){ return false; }
+}
+function loadFavs() { try { const r = localStorage.getItem(FAV_STORE); if (r) FAVS = new Set(JSON.parse(r)); } catch(e){} }
+function saveFavs() { try { localStorage.setItem(FAV_STORE, JSON.stringify([...FAVS])); } catch(e){} }
+
+function saveImages() {
+  try { localStorage.setItem(IMAGES_STORE, JSON.stringify(IMAGES)); }
+  catch(e) { console.warn('Images storage full', e); toast(t('storageFull')); }
+}
+function loadImages() {
+  try {
+    const raw = localStorage.getItem(IMAGES_STORE);
+    if (raw) IMAGES = JSON.parse(raw);
+  } catch(e) { IMAGES = {}; }
+}
+
+function savePartsList() {
+  try {
+    localStorage.setItem(PARTS_LIST_STORE, JSON.stringify(PARTS_LIST));
+    updatePartsListBadge();
+  } catch(e) { console.warn('Parts list storage error', e); }
+}
+function loadPartsList() {
+  try {
+    const raw = localStorage.getItem(PARTS_LIST_STORE);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (Array.isArray(p)) PARTS_LIST = p;
+    }
+  } catch(e) { PARTS_LIST = []; }
+  updatePartsListBadge();
+}
+function updatePartsListBadge() {
+  const badge = $('partsListBadge');
+  if (!badge) return;
+  if (PARTS_LIST.length > 0) {
+    badge.textContent = PARTS_LIST.length;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+/* ============================================================
+   9. IMPORT UI
+   ============================================================ */
+function openImport() { if (importModal) importModal.classList.add('show'); }
+function closeImport() {
+  if (importModal) importModal.classList.remove('show');
+  if (healthCheck) healthCheck.classList.add('hidden');
+  showProgress(0);
+}
+
+async function doImportPaste() {
+  if (!pasteArea) return;
+  const raw = pasteArea.value.trim();
+  if (!raw) { toast(currentLang === 'ar' ? 'الصق البيانات أولاً' : 'Paste data first'); return; }
+  if (!importBtn) return;
+  importBtn.disabled = true;
+  importBtn.textContent = '⏳ ...';
+  await new Promise(r => setTimeout(r, 50));
+  try {
+    const parts = parseRaw(raw);
+    if (!parts.length) { showHealth({error: 'No parts found. Make sure to copy all cells.'}); return; }
+    finishImport(parts, 'Pasted text');
+    pasteArea.value = '';
+  } catch(e) {
+    console.error(e);
+    showHealth({error: 'Error: ' + e.message});
+  } finally {
+    importBtn.disabled = false;
+    importBtn.innerHTML = '📥 <span data-i18n="importFromText">' + t('importFromText') + '</span>';
+  }
+}
+
+function finishImport(parts, fileName) {
+  if (!parts.length) {
+    showHealth({error: 'No parts in file. Check data.'});
+    return;
+  }
+  const h = computeHealth(parts);
+  showHealth(h);
+
+  PARTS = parts;
+  saveAll();
+  buildDropdowns();
+  buildChips();
+  showMain();
+  render();
+  showProgress(100);
+  toast(`✅ ${t('importSuccess')} ${parts.length} ${currentLang === 'ar' ? 'قطعة' : 'parts'} — ${fileName}`);
+
+  setTimeout(() => {
+    closeImport();
+    showProgress(0);
+  }, 2200);
+}
+
+function computeHealth(parts) {
+  const total = parts.length;
+  const inStock = parts.filter(p => p.s > 0).length;
+  const hasModel = parts.filter(p => p.m !== 'عام').length;
+  const hasYear = parts.filter(p => p.y1 > 0 && p.y1 < 9999).length;
+  const hasLoc = parts.filter(p => p.l).length;
+  const mazda = parts.filter(p => p.b === 'Mazda').length;
+  return {total, inStock, hasModel, hasYear, hasLoc, mazda};
+}
+
+function showHealth(h) {
+  if (!healthCheck) return;
+  healthCheck.classList.remove('hidden');
+  if (h.error) { healthCheck.innerHTML = `<span style="color:var(--no)">❌ ${escHtml(h.error)}</span>`; return; }
+  const ar = currentLang === 'ar';
+  healthCheck.innerHTML = `
+    <div>📦 ${ar ? 'إجمالي القطع' : 'Total'}: <b>${h.total.toLocaleString('ar-EG')}</b></div>
+    <div>✅ ${ar ? 'في المخزن' : 'In Stock'}: <span class="ok">${h.inStock.toLocaleString('ar-EG')}</span></div>
+    <div>🚗 ${ar ? 'تم التعرف على الموديل' : 'Models detected'}: <b>${h.hasModel.toLocaleString('ar-EG')}</b></div>
+    <div>📅 ${ar ? 'تم التعرف على السنة' : 'Years detected'}: <b>${h.hasYear.toLocaleString('ar-EG')}</b></div>
+    <div>📍 ${ar ? 'لها موقع' : 'Has location'}: <b>${h.hasLoc.toLocaleString('ar-EG')}</b></div>
+    <div>🔧 ${ar ? 'قطع مازدا' : 'Mazda parts'}: <b>${h.mazda.toLocaleString('ar-EG')}</b></div>
+  `;
+}
+
+function clearAll() {
+  if (!confirm(t('deleteConfirm'))) return;
+  PARTS = []; FAVS.clear(); IMAGES = {};
+  localStorage.removeItem(STORE);
+  localStorage.removeItem(FAV_STORE);
+  localStorage.removeItem(IMAGES_STORE);
+  location.reload();
+}
+
+/* ============================================================
+   10. UI BUILD
+   ============================================================ */
+function buildDropdowns() {
+  if (!fModel || !fYear || !fCat || !fBrand) return;
+
+  const models = [...new Set(PARTS.map(p => p.m))].filter(m => m !== 'عام').sort();
+  const cats = [...new Set(PARTS.map(p => p.c))].sort();
+  const brands = [...new Set(PARTS.map(p => p.b))].filter(b => b !== 'عام').sort();
+  const years = new Set();
+  PARTS.forEach(p => {
+    if (p.y1 > 0 && p.y1 < 9999) years.add(p.y1);
+    if (p.y2 > 0 && p.y2 < 9999 && p.y2 !== p.y1) years.add(p.y2);
+  });
+  const yearList = [...years].sort((a,b) => b - a);
+
+  fModel.innerHTML = `<option value="">${t('allModels')}</option>` +
+    models.map(m => `<option value="${escAttr(m)}">${escHtml(m)} (${PARTS.filter(p=>p.m===m).length})</option>`).join('');
+  fYear.innerHTML = `<option value="">${t('allYears')}</option>` +
+    yearList.map(y => `<option value="${y}">${y}</option>`).join('');
+  fCat.innerHTML = `<option value="">${t('allCategories')}</option>` +
+    cats.map(c => `<option value="${escAttr(c)}">${escHtml(c)} (${PARTS.filter(p=>p.c===c).length})</option>`).join('');
+  fBrand.innerHTML = `<option value="">${t('allBrands')}</option>` +
+    brands.map(b => `<option value="${escAttr(b)}">${escHtml(b)} (${PARTS.filter(p=>p.b===b).length})</option>`).join('');
+}
+
+function buildChips() {
+  if (!chipsEl) return;
+
+  const inStock = PARTS.filter(p => p.s > 0).length;
+  const favCount = PARTS.filter(p => FAVS.has(p.p)).length;
+  const mazda = PARTS.filter(p => p.b === 'Mazda').length;
+  chipsEl.innerHTML = `
+    <button class="chip" data-chip="all">${t('all')} <span class="count">${PARTS.length}</span></button>
+    <button class="chip" data-chip="stock">${t('available')} <span class="count">${inStock}</span></button>
+    <button class="chip" data-chip="fav">${t('favorites')} <span class="count">${favCount}</span></button>
+    <button class="chip" data-chip="mazda">${t('mazda')} <span class="count">${mazda}</span></button>
+  `;
+  chipsEl.querySelectorAll('.chip').forEach(c => {
+    c.onclick = () => {
+      chipsEl.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      activeChip = c.dataset.chip;
+      render();
+    };
+  });
+  const allChip = chipsEl.querySelector('[data-chip="all"]');
+  if (allChip) allChip.classList.add('active');
+  chipsEl.classList.remove('hidden');
+}
+
+function showMain() {
+  if (statsBar) statsBar.classList.remove('hidden');
+  if (chipsEl) chipsEl.classList.remove('hidden');
+  if (filtersPanel) filtersPanel.classList.remove('hidden');
+  updateStats();
+}
+
+function updateStats() {
+  if (!statsBar) return;
+
+  const inStock = PARTS.filter(p => p.s > 0).length;
+  const totalQty = PARTS.reduce((s,p) => s + p.s, 0);
+  const models = new Set(PARTS.filter(p=>p.m!=='عام').map(p => p.m)).size;
+  const cats = new Set(PARTS.map(p => p.c)).size;
+  const ar = currentLang === 'ar';
+  statsBar.innerHTML = `
+    <div class="stat-card"><div class="stat-label">${t('totalParts')}</div><div class="stat-value">${PARTS.length.toLocaleString(ar ? 'ar-EG' : 'en-US')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('inStock')}</div><div class="stat-value ok">${inStock.toLocaleString(ar ? 'ar-EG' : 'en-US')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('totalQty')}</div><div class="stat-value">${totalQty.toLocaleString(ar ? 'ar-EG' : 'en-US')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('modelsCount')}</div><div class="stat-value">${models}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('categoriesCount')}</div><div class="stat-value">${cats}</div></div>
+  `;
+}
+
+/* ============================================================
+   11. FILTER + RENDER
+   ============================================================ */
+let searchTimer;
+if (qEl) {
+  qEl.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(render, 150); });
+}
+['fModel','fYear','fCat','fBrand','fSort'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('change', render);
+});
+
+function render() {
+  if (!PARTS.length || !resultsEl) return;
+
+  const q = qEl ? qEl.value.trim().toLowerCase() : '';
+  const model = fModel ? fModel.value : '';
+  const year = fYear && fYear.value ? parseInt(fYear.value) : null;
+  const cat = fCat ? fCat.value : '';
+  const brand = fBrand ? fBrand.value : '';
+  const sort = fSort ? fSort.value : 'stock';
+
+  FILTERED = PARTS.filter(p => {
+    if (activeChip === 'stock' && p.s <= 0) return false;
+    if (activeChip === 'fav' && !FAVS.has(p.p)) return false;
+    if (activeChip === 'mazda' && p.b !== 'Mazda') return false;
+    if (model && p.m !== model) return false;
+    if (cat && p.c !== cat) return false;
+    if (brand && p.b !== brand) return false;
+    if (year !== null && !(year >= p.y1 && year <= p.y2)) return false;
+    if (q) {
+      const hay = (p.n + ' ' + p.p + ' ' + p.m + ' ' + p.c).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  FILTERED.sort((a,b) => {
+    if (sort === 'stock') {
+      if ((b.s>0)-(a.s>0) !== 0) return (b.s>0)-(a.s>0);
+      return b.s - a.s;
+    }
+    if (sort === 'name') return a.n.localeCompare(b.n, 'ar');
+    if (sort === 'part') return a.p.localeCompare(b.p, 'en');
+    if (sort === 'model') return a.m.localeCompare(b.m, 'ar') || a.n.localeCompare(b.n, 'ar');
+    if (sort === 'loc') {
+      if (!a.l && b.l) return 1;
+      if (a.l && !b.l) return -1;
+      return a.l.localeCompare(b.l, 'en');
+    }
+    return 0;
+  });
+
+  renderedCount = 0;
+  resultsEl.innerHTML = '';
+  loadMore();
+}
+
+function loadMore() {
+  if (renderedCount >= FILTERED.length) return;
+  const slice = FILTERED.slice(renderedCount, renderedCount + PAGE_SIZE);
+  const frag = document.createDocumentFragment();
+
+  if (renderedCount === 0 && !FILTERED.length) {
+    resultsEl.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><h3>${t('noResults')}</h3><p>${t('tryOtherSearch')}</p></div>`;
+    return;
+  }
+
+  slice.forEach(p => frag.appendChild(renderCard(p)));
+  resultsEl.appendChild(frag);
+  renderedCount += slice.length;
+
+  if (renderedCount < FILTERED.length) {
+    const sentinel = document.createElement('div');
+    sentinel.id = 'sentinel';
+    sentinel.className = 'loading';
+    sentinel.textContent = `... (${renderedCount} / ${FILTERED.length})`;
+    resultsEl.appendChild(sentinel);
+    observeSentinel();
+  }
+}
+
+function observeSentinel() {
+  if (io) io.disconnect();
+  const s = $('sentinel');
+  if (!s) return;
+  io = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { s.remove(); loadMore(); }
+  }, {rootMargin: '300px'});
+  io.observe(s);
+}
+
+function renderCard(p) {
+  const card = document.createElement('div');
+  card.className = 'pc';
+  const yR = (p.y1 === 0 || p.y1 === 9999) ? t('allYearsLabel')
+    : (p.y1 === p.y2 ? `${p.y1}` : `${p.y1}–${p.y2}`);
+  const sB = p.s > 0 ? `<span class="bg bg-i">✅ ${p.s}</span>` : `<span class="bg bg-o">${t('notAvailable')}</span>`;
+  const lB = p.l ? `<span class="bg bg-l">📍 ${escHtml(p.l)}</span>` : '';
+  const isFav = FAVS.has(p.p);
+  
+  const imgData = IMAGES[p.p];
+  const imgHtml = imgData 
+    ? `<img src="${imgData}" alt="${escHtml(p.n)}">` 
+    : `<div class="pc-img-placeholder"><span>📷</span><span>${t('noImage')}</span></div>`;
+
+  card.innerHTML = `
+    <button class="pc-star ${isFav ? 'on' : ''}">${isFav ? '★' : '☆'}</button>
+    
+    <div class="pc-img-container" data-partno="${escAttr(p.p)}">
+      ${imgHtml}
+      <button class="pc-img-upload-btn" onclick="event.stopPropagation(); this.nextElementSibling.click()">
+        ${t('uploadImage')}
+      </button>
+      <input type="file" class="pc-img-upload-input" accept="image/*" capture="environment" onchange="handleImageUpload(event, '${escAttr(p.p)}')">
+      <div class="pc-img-processing">
+        <div class="spinner"></div>
+        <span>${t('uploading')}</span>
+      </div>
+    </div>
+
+    <div class="pc-name">${escHtml(p.n)}</div>
+    <div><span class="pc-num">${escHtml(p.p)}</span></div>
+    <div class="pc-meta">
+      <span class="bg bg-m">🚗 ${escHtml(p.m)}</span>
+      <span class="bg bg-y">📅 ${yR}</span>
+      <span class="bg bg-c">🏷️ ${escHtml(p.c)}</span>
+      ${sB}${lB}
+    </div>
+  `;
+  card.querySelector('.pc-star').onclick = (e) => { e.stopPropagation(); toggleFav(p.p, card); };
+  card.onclick = () => showDetail(p);
+  return card;
+}
+
+/* ============================================================
+   CLOUDINARY IMAGE UPLOAD + COMPRESSION
+   ============================================================ */
+async function handleImageUpload(event, partNo) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const container = event.target.closest('.pc-img-container');
+  const overlay = container ? container.querySelector('.pc-img-processing') : null;
+  if (overlay) overlay.classList.add('show');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = async function() {
+      try {
+        // --- Compress image before sending to Cloudinary ---
+        const MAX_SIZE = 800; // Max dimension 800px
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Get compressed base64 to upload
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+        // --- Upload to Cloudinary ---
+        const formData = new FormData();
+        formData.append('file', compressedBase64);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        // ❌ REMOVED the folder line to fix the 400 Bad Request error
+
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          console.error("Cloudinary error:", errData);
+          throw new Error('Cloudinary upload failed');
+        }
+
+        const data = await response.json();
+        const imageUrl = data.secure_url;
+
+        // Save the Cloudinary URL instead of Base64
+        IMAGES[partNo] = imageUrl;
+        
+        try {
+          saveImages();
+        } catch (saveErr) {
+          console.warn("Could not save to localstorage, quota exceeded by old images.");
+        }
+
+        render();
+        toast('✅ ' + t('uploadSuccess'));
+      } catch (err) {
+        console.error('Upload error:', err);
+        toast('⚠️ ' + t('uploadFailed'));
+        if (overlay) overlay.classList.remove('show');
+      } finally {
+        if (overlay) overlay.classList.remove('show');
+      }
+    };
+    img.onerror = function() {
+      toast('⚠️ ' + t('imageError'));
+      if (overlay) overlay.classList.remove('show');
+    };
+    img.src = e.target.result;
+  };
+  reader.onerror = function() {
+    toast('⚠️ ' + t('imageError'));
+    if (overlay) overlay.classList.remove('show');
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function toggleFav(partNo, card) {
+  if (FAVS.has(partNo)) FAVS.delete(partNo); else FAVS.add(partNo);
+  saveFavs();
+  const btn = card.querySelector('.pc-star');
+  btn.textContent = FAVS.has(partNo) ? '★' : '☆';
+  btn.classList.toggle('on', FAVS.has(partNo));
+  const favChip = chipsEl ? chipsEl.querySelector('[data-chip="fav"] .count') : null;
+  if (favChip) favChip.textContent = PARTS.filter(p => FAVS.has(p.p)).length;
+}
+
+/* ============================================================
+   12. DETAIL MODAL
+   ============================================================ */
+function showDetail(p) {
+  if (!detailModal) return;
+  const dt = $('detailTitle');
+  const db = $('detailBody');
+  if (dt) dt.textContent = p.n;
+
+  const yR = (p.y1 === 0 || p.y1 === 9999) ? t('allYearsLabel')
+    : (p.y1 === p.y2 ? `${p.y1}` : `${p.y1}–${p.y2}`);
+    
+  const imgData = IMAGES[p.p];
+  const imgHtmlDetail = imgData 
+    ? `<div style="margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);"><img src="${imgData}" style="width:100%;max-height:250px;object-fit:contain;background:var(--chip);"></div>` 
+    : '';
+
+  if (db) db.innerHTML = `
+    ${imgHtmlDetail}
+    <div class="detail-row"><span class="detail-key">${t('partNumberDetail')}</span><span class="detail-val mono">${escHtml(p.p)}</span></div>
+    <div class="detail-row"><span class="detail-key">${t('modelDetail')}</span><span class="detail-val">${escHtml(p.m)}</span></div>
+    <div class="detail-row"><span class="detail-key">${t('brandDetail')}</span><span class="detail-val">${escHtml(p.b)}</span></div>
+    <div class="detail-row"><span class="detail-key">${t('categoryDetail')}</span><span class="detail-val">${escHtml(p.c)}</span></div>
+    <div class="detail-row"><span class="detail-key">${t('yearsDetail')}</span><span class="detail-val">${yR}</span></div>
+    <div class="detail-row"><span class="detail-key">${t('quantityDetail')}</span><span class="detail-val">${p.s > 0 ? p.s + ' ✅' : '0 ❌'}</span></div>
+    <div class="detail-row"><span class="detail-key">${t('locationDetail')}</span><span class="detail-val mono">${escHtml(p.l || '—')}</span></div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-g" onclick="copyText('${escAttr(p.p)}')">${t('copy')}</button>
+      <button class="btn btn-g" onclick="toggleFavDetail('${escAttr(p.p)}')">${FAVS.has(p.p) ? t('unfavorite') : t('favorite')}</button>
+      <button class="btn btn-p" onclick="openEdit('${escAttr(p.p)}')" style="background:var(--warn)">${t('edit')}</button>
+      <button class="btn btn-r" onclick="confirmDeletePart('${escAttr(p.p)}')">${t('delete')}</button>
+    </div>
+  `;
+  detailModal.classList.add('show');
+}
+function closeDetail() { if (detailModal) detailModal.classList.remove('show'); }
+function toggleFavDetail(partNo) {
+  if (FAVS.has(partNo)) FAVS.delete(partNo); else FAVS.add(partNo);
+  saveFavs();
+  const p = PARTS.find(x => x.p === partNo);
+  if (p) showDetail(p);
+  render();
+}
+function copyText(t2) { navigator.clipboard.writeText(t2).then(() => toast('✅ ' + t('copySuccess'))); }
+
+/* ============================================================
+   EDIT PART
+   ============================================================ */
+function openEdit(partNo) {
+  const p = PARTS.find(x => x.p === partNo);
+  if (!p) { toast('⚠️ ' + t('editNotFound')); return; }
+  
+  editingPartNo = partNo;
+  
+  $('editName').value = p.n || '';
+  $('editPart').value = p.p || '';
+  $('editModel').value = p.m || '';
+  $('editBrand').value = p.b || '';
+  $('editCat').value = p.c || '';
+  $('editQty').value = p.s || 0;
+  $('editLoc').value = p.l || '';
+  $('editY1').value = (p.y1 > 0 && p.y1 < 9999) ? p.y1 : '';
+  $('editY2').value = (p.y2 > 0 && p.y2 < 9999) ? p.y2 : '';
+  
+  fillSuggestions();
+  
+  closeDetail();
+  const editModal = $('editModal');
+  if (editModal) editModal.classList.add('show');
+  setTimeout(() => $('editName').focus(), 100);
+}
+
+function closeEdit() {
+  const editModal = $('editModal');
+  if (editModal) editModal.classList.remove('show');
+  editingPartNo = null;
+}
+
+function saveEditProduct() {
+  if (!editingPartNo) { toast('⚠️ No part selected'); return; }
+  
+  try {
+    const p = PARTS.find(x => x.p === editingPartNo);
+    if (!p) { toast('⚠️ ' + t('editNotFound')); return; }
+
+    const name = ($('editName').value || '').trim();
+    const newPartNo = ($('editPart').value || '').trim();
+    const qty = parseInt($('editQty').value, 10) || 0;
+
+    if (!name) { toast('⚠️ ' + t('name')); $('editName').focus(); return; }
+    if (!newPartNo) { toast('⚠️ ' + t('partNumber')); $('editPart').focus(); return; }
+
+    if (newPartNo !== editingPartNo) {
+      const conflict = PARTS.find(x => x.p === newPartNo);
+      if (conflict) {
+        toast(`⚠️ "${newPartNo}" — ${t('partNumberExists')}`);
+        return;
+      }
+    }
+
+    const oldPartNo = editingPartNo;
+
+    p.n = name;
+    p.p = newPartNo;
+    p.m = ($('editModel').value || '').trim() || 'عام';
+    p.b = ($('editBrand').value || '').trim() || 'Mazda';
+    p.c = ($('editCat').value || '').trim() || 'أخرى';
+    p.s = qty;
+    p.l = ($('editLoc').value || '').trim();
+    
+    const y1Input = parseInt($('editY1').value, 10) || 0;
+    const y2Input = parseInt($('editY2').value, 10) || 0;
+    p.y1 = y1Input || 0;
+    p.y2 = y2Input || 9999;
+    if (p.y1 && !p.y2) p.y2 = p.y1;
+
+    if (newPartNo !== oldPartNo) {
+      if (IMAGES[oldPartNo]) {
+        IMAGES[newPartNo] = IMAGES[oldPartNo];
+        delete IMAGES[oldPartNo];
+        saveImages();
+      }
+      if (FAVS.has(oldPartNo)) {
+        FAVS.delete(oldPartNo);
+        FAVS.add(newPartNo);
+        saveFavs();
+      }
+      const inList = PARTS_LIST.find(x => x.p === oldPartNo);
+      if (inList) {
+        inList.p = newPartNo;
+        inList.n = name;
+        inList.m = p.m;
+        inList.l = p.l;
+        savePartsList();
+      }
+    } else {
+      const inList = PARTS_LIST.find(x => x.p === oldPartNo);
+      if (inList) {
+        inList.n = name;
+        inList.m = p.m;
+        inList.l = p.l;
+        savePartsList();
+      }
+    }
+
+    saveAll();
+    buildDropdowns();
+    buildChips();
+    updateStats();
+    render();
+    fillSuggestions();
+    closeEdit();
+    toast(`✅ ${t('partEdited')} "${name}"`);
+  } catch(err) {
+    console.error('Edit error:', err);
+    toast('⚠️ ' + t('editError'));
+    editingPartNo = null;
+    closeEdit();
+  }
+}
+
+/* ============================================================
+   DELETE PART
+   ============================================================ */
+function confirmDeletePart(partNo) {
+  const p = PARTS.find(x => x.p === partNo);
+  if (!p) { toast('⚠️ ' + t('editNotFound')); return; }
+  
+  const confirmed = confirm(t('confirmDeleteMsg') + `\n\n📦 ${p.n}\n🔢 ${p.p}\n📍 ${p.l || '—'}`);
+  
+  if (!confirmed) return;
+  
+  const idx = PARTS.findIndex(x => x.p === partNo);
+  if (idx !== -1) PARTS.splice(idx, 1);
+  
+  if (IMAGES[partNo]) {
+    delete IMAGES[partNo];
+    saveImages();
+  }
+  
+  if (FAVS.has(partNo)) {
+    FAVS.delete(partNo);
+    saveFavs();
+  }
+  
+  PARTS_LIST = PARTS_LIST.filter(x => x.p !== partNo);
+  savePartsList();
+  
+  saveAll();
+  closeDetail();
+  buildDropdowns();
+  buildChips();
+  updateStats();
+  render();
+  toast(`🗑️ ${t('partDeleted')} "${p.n}"`);
+}
+
+/* ============================================================
+   13. EXPORT / PRINT
+   ============================================================ */
+function exportCSV() {
+  if (!FILTERED.length) { toast(t('noResults')); return; }
+  const esc = v => `"${String(v).replace(/"/g,'""')}"`;
+  const rows = [['Name','Part Number','Model','Brand','Category','From','To','Quantity','Location']];
+  FILTERED.forEach(p => rows.push([p.n, p.p, p.m, p.b, p.c, p.y1||'', p.y2||'', p.s, p.l]));
+  const csv = '\ufeff' + rows.map(r => r.map(esc).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `mazda_parts_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast(`✅ ${FILTERED.length} — CSV`);
+}
+
+function printFiltered() {
+  if (!FILTERED.length) { toast(t('noResults')); return; }
+  const w = window.open('', '_blank');
+  if (!w) { toast(currentLang === 'ar' ? 'الرجاء السماح بالنوافذ' : 'Please allow popups'); return; }
+  const html = `<!DOCTYPE html><html dir="${currentLang === 'ar' ? 'rtl' : 'ltr'}" lang="${currentLang}"><head><meta charset="UTF-8"><title>Mazda Parts</title>
+<style>body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:20px;color:#0f172a}
+h1{color:#1e40af;margin-bottom:6px;font-size:1.4rem}p.info{color:#64748b;font-size:.85rem;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{background:#2563eb;color:#fff;padding:8px 10px;text-align:${currentLang === 'ar' ? 'right' : 'left'};border:1px solid #1e40af}
+td{padding:6px 10px;border:1px solid #cbd5e1;vertical-align:top}
+tr:nth-child(even){background:#f1f5f9}
+.mono{font-family:'Courier New',monospace;direction:ltr;text-align:left}
+.stock{color:#16a34a;font-weight:700}.out{color:#dc2626}
+@media print{body{padding:0}h1{font-size:1.1rem}}</style></head><body>
+<h1>🔧 ${currentLang === 'ar' ? 'قطع غيار مازدا' : 'Mazda Spare Parts'}</h1>
+<p class="info">${t('totalParts')}: <b>${FILTERED.length}</b> | ${new Date().toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US')}</p>
+<table><thead><tr>
+<th>#</th><th>${t('name')}</th><th>${t('partNumber')}</th><th>${t('model')}</th><th>${t('category')}</th><th>${t('year')}</th><th>${t('quantity')}</th><th>${t('location')}</th>
+</tr></thead><tbody>
+${FILTERED.map((p,i) => `<tr><td>${i+1}</td><td>${escHtml(p.n)}</td><td class="mono">${escHtml(p.p)}</td><td>${escHtml(p.m)}</td><td>${escHtml(p.c)}</td><td>${(p.y1===0||p.y1===9999)?'—':(p.y1===p.y2?p.y1:p.y1+'-'+p.y2)}</td><td class="${p.s>0?'stock':'out'}">${p.s}</td><td class="mono">${escHtml(p.l||'—')}</td></tr>`).join('')}
+</tbody></table></body></html>`;
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+/* ============================================================
+   14. THEME
+   ============================================================ */
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  if (themeIcon) themeIcon.textContent = next === 'dark' ? '☀️' : '🌙';
+  try { localStorage.setItem(THEME_STORE, next); } catch(e){}
+}
+function initTheme() {
+  let th = 'light';
+  try { th = localStorage.getItem(THEME_STORE) || 'light'; } catch(e){}
+  document.documentElement.setAttribute('data-theme', th);
+  if (themeIcon) themeIcon.textContent = th === 'dark' ? '☀️' : '🌙';
+}
+
+/* ============================================================
+   15. HELPERS
+   ============================================================ */
+function escHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s) { return escHtml(s).replace(/'/g, '&#39;'); }
+
+let toastTimer;
+function toast(msg) {
+  if (!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800);
+}
+
+/* ============================================================
+   16. DRAG & DROP + FILE INPUT
+   ============================================================ */
+if (xlsxInput) {
+  xlsxInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+    e.target.value = '';
+  });
+}
+
+if (dropZone) {
+  ['dragenter','dragover'].forEach(ev => {
+    dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
+  });
+  ['dragleave','drop'].forEach(ev => {
+    dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('dragover'); });
+  });
+  dropZone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+}
+
+if (importModal) {
+  importModal.addEventListener('dragover', e => e.preventDefault());
+  importModal.addEventListener('drop', e => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+}
+
+/* ============================================================
+   17. KEYBOARD
+   ============================================================ */
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== qEl && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    if (qEl) qEl.focus();
+  }
+  if (e.key === 'Escape') { closeDetail(); closeImport(); closeAdd(); closeSale(); closePartsList(); closeEdit(); }
+});
+
+/* ============================================================
+   18. INIT
+   ============================================================ */
+function init() {
+  initTheme();
+  loadFavs();
+  loadImages();
+  loadPartsList();
+  if (loadAll()) {
+    initLanguage();
+    buildDropdowns();
+    buildChips();
+    showMain();
+    render();
+  } else {
+    initLanguage();
+    openImport();
+  }
+}
+init();
+
+/* ============================================================
+   19. ADD PRODUCT
+   ============================================================ */
+function openAddProduct() {
+  const addModal = $('addModal');
+  if (!addModal) return;
+  $('addName').value = '';
+  $('addPart').value = '';
+  $('addModel').value = '';
+  $('addBrand').value = 'Mazda';
+  $('addCat').value = '';
+  $('addQty').value = 1;
+  $('addLoc').value = '';
+  $('addY1').value = '';
+  $('addY2').value = '';
+  fillSuggestions();
+  addModal.classList.add('show');
+  setTimeout(() => $('addName').focus(), 100);
+}
+
+function fillSuggestions() {
+  const models = [...new Set(PARTS.map(p => p.m))].filter(m => m !== 'عام').sort();
+  const brands = [...new Set(PARTS.map(p => p.b))].filter(b => b !== 'عام').sort();
+  const cats = [...new Set(PARTS.map(p => p.c))].sort();
+
+  const mDl = $('modelSuggest');
+  const bDl = $('brandSuggest');
+  const cDl = $('catSuggest');
+  if (mDl) mDl.innerHTML = models.map(m => `<option value="${escAttr(m)}">`).join('');
+  if (bDl) bDl.innerHTML = brands.map(b => `<option value="${escAttr(b)}">`).join('');
+  if (cDl) cDl.innerHTML = cats.map(c => `<option value="${escAttr(c)}">`).join('');
+}
+
+function closeAdd() {
+  const addModal = $('addModal');
+  if (addModal) addModal.classList.remove('show');
+}
+
+function saveNewProduct() {
+  const name = ($('addName').value || '').trim();
+  const partNo = ($('addPart').value || '').trim();
+  const qty = parseInt($('addQty').value, 10) || 0;
+  const loc = ($('addLoc').value || '').trim();
+
+  if (!name) { toast('⚠️ ' + t('name')); $('addName').focus(); return; }
+  if (!partNo) { toast('⚠️ ' + t('partNumber')); $('addPart').focus(); return; }
+
+  const existing = PARTS.find(p => p.p === partNo);
+  if (existing) {
+    const msg = currentLang === 'ar'
+      ? `رقم القطعة "${partNo}" موجود بالفعل (${existing.n})\n\nهل تريد إضافة الكمية على القطعة الموجودة؟`
+      : `Part number "${partNo}" already exists (${existing.n})\n\nAdd quantity to existing part?`;
+    if (confirm(msg)) {
+      existing.s += qty;
+      if (!existing.l && loc) existing.l = loc;
+      saveAll();
+      buildDropdowns();
+      buildChips();
+      updateStats();
+      render();
+      fillSuggestions();
+      closeAdd();
+      toast(`✅ ${t('partUpdated')}: ${existing.n} → ${existing.s}`);
+      return;
+    }
+    return;
+  }
+
+  const modelInput = ($('addModel').value || '').trim();
+  const brandInput = ($('addBrand').value || '').trim();
+  const catInput = ($('addCat').value || '').trim();
+  const y1Input = parseInt($('addY1').value, 10) || 0;
+  const y2Input = parseInt($('addY2').value, 10) || 0;
+
+  const detectedModel = modelInput || detectModel(name);
+  const detectedBrand = brandInput || detectBrand(name);
+  const detectedCat = catInput || detectCategory(name);
+  let y1 = y1Input, y2 = y2Input;
+  if (!y1 && !y2) { const dy = detectYears(name); y1 = dy[0]; y2 = dy[1]; }
+  else if (y1 && !y2) y2 = y1;
+
+  const newPart = {
+    n: name, p: partNo,
+    m: detectedModel || 'عام',
+    b: detectedBrand || 'Mazda',
+    c: detectedCat || 'أخرى',
+    y1: y1 || 0, y2: y2 || 9999,
+    s: qty, l: loc
+  };
+
+  PARTS.push(newPart);
+  saveAll();
+  buildDropdowns();
+  buildChips();
+  updateStats();
+  render();
+  fillSuggestions();
+  closeAdd();
+  toast(`✅ ${t('partAdded2')} "${name}"`);
+}
+
+/* ============================================================
+   20. SALE PRODUCT
+   ============================================================ */
+let saleSelectedPart = null;
+
+function openSaleProduct() {
+  const saleModal = $('saleModal');
+  if (!saleModal) return;
+  if (!PARTS.length) { toast('⚠️ ' + t('noParts')); return; }
+  resetSaleSelection();
+  $('saleSearch').value = '';
+  saleModal.classList.add('show');
+  setTimeout(() => $('saleSearch').focus(), 100);
+}
+
+function closeSale() {
+  const saleModal = $('saleModal');
+  if (saleModal) saleModal.classList.remove('show');
+  saleSelectedPart = null;
+}
+
+function resetSaleSelection() {
+  saleSelectedPart = null;
+  const sb = $('saleSelectedBox');
+  const sr = $('saleResults');
+  const sSearch = $('saleSearch');
+  if (sb) sb.classList.add('hidden');
+  if (sr) sr.innerHTML = '';
+  if (sSearch) { sSearch.value = ''; sSearch.focus(); }
+}
+
+let saleSearchTimer;
+function saleSearchChanged() {
+  clearTimeout(saleSearchTimer);
+  saleSearchTimer = setTimeout(() => doSaleSearch(), 150);
+}
+
+function doSaleSearch() {
+  const q = ($('saleSearch').value || '').trim().toLowerCase();
+  const sr = $('saleResults');
+  if (!sr) return;
+
+  if (!q) {
+    sr.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:.85rem">${t('searchHint')}</div>`;
+    return;
+  }
+
+  const matches = PARTS.filter(p => {
+    const hay = (p.n + ' ' + p.p + ' ' + p.m + ' ' + p.c).toLowerCase();
+    return hay.includes(q);
+  }).slice(0, 20);
+
+  if (!matches.length) {
+    sr.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:.85rem">${t('noResults')}</div>`;
+    return;
+  }
+
+  sr.innerHTML = matches.map((p, i) => {
+    const qtyClass = p.s > 0 ? 'style="color:var(--ok);font-weight:700"' : 'style="color:var(--no)"';
+    return `<div class="sale-result-item" data-idx="${PARTS.indexOf(p)}" style="padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;transition:background .15s;min-height:44px" onmouseover="this.style.background='var(--chip)'" onmouseout="this.style.background=''">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:2px">${escHtml(p.n)}</div>
+        <div style="font-family:'Courier New',monospace;font-size:.72rem;color:var(--muted);direction:ltr;text-align:left">${escHtml(p.p)}</div>
+      </div>
+      <div ${qtyClass} style="font-size:.85rem;white-space:nowrap">${p.s}</div>
+    </div>`;
+  }).join('');
+
+  sr.querySelectorAll('.sale-result-item').forEach(el => {
+    el.onclick = () => selectSalePart(parseInt(el.dataset.idx));
+  });
+}
+
+function selectSalePart(idx) {
+  const p = PARTS[idx];
+  if (!p) return;
+  saleSelectedPart = p;
+
+  const info = $('saleInfo');
+  if (info) {
+    const qtyColor = p.s > 0 ? 'var(--ok)' : 'var(--no)';
+    info.innerHTML = `
+      <div style="font-weight:600;margin-bottom:6px">${escHtml(p.n)}</div>
+      <div style="font-family:'Courier New',monospace;font-size:.78rem;direction:ltr;text-align:left;margin-bottom:6px">${escHtml(p.p)}</div>
+      <div>${t('inStock')}: <span class="sale-current" style="color:${qtyColor}">${p.s}</span></div>
+      <div style="color:var(--muted);font-size:.8rem">🚗 ${escHtml(p.m)} · 🏷️ ${escHtml(p.c)}${p.l ? ' · 📍 ' + escHtml(p.l) : ''}</div>
+    `;
+  }
+
+  const qtyInput = $('saleQty');
+  if (qtyInput) {
+    qtyInput.value = 1;
+    qtyInput.max = p.s;
+  }
+
+  const sr = $('saleResults');
+  if (sr) sr.innerHTML = '';
+
+  const sb = $('saleSelectedBox');
+  if (sb) sb.classList.remove('hidden');
+}
+
+function confirmSale() {
+  if (!saleSelectedPart) { toast('⚠️ ' + t('selectPart')); return; }
+  const qty = parseInt($('saleQty').value, 10) || 0;
+
+  if (qty <= 0) { toast('⚠️ ' + t('invalidQty')); return; }
+  if (qty > saleSelectedPart.s) {
+    toast(`⚠️ ${t('onlyAvailable')} ${saleSelectedPart.s}`);
+    return;
+  }
+
+  const p = saleSelectedPart;
+  p.s -= qty;
+  saveAll();
+
+  const name = p.n;
+  const remaining = p.s;
+
+  buildChips();
+  updateStats();
+  render();
+
+  closeSale();
+
+  if (remaining === 0) {
+    toast(`✅ ${t('saleSuccess')} ${qty} — ${name} (${t('soldOut')})`);
+  } else {
+    toast(`✅ ${t('saleSuccess')} ${qty} — ${name} (${t('remaining')}: ${remaining})`);
+  }
+}
+
+/* ============================================================
+   21. PARTS LIST
+   ============================================================ */
+let plSearchTimer;
+
+function openPartsList() {
+  const m = $('partsListModal');
+  if (!m) return;
+  const searchInput = $('plSearch');
+  if (searchInput) searchInput.value = '';
+  const sr = $('plSearchResults');
+  if (sr) sr.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:.85rem">${t('searchHint')}</div>`;
+  renderPartsListCart();
+  m.classList.add('show');
+  setTimeout(() => searchInput && searchInput.focus(), 100);
+}
+
+function closePartsList() {
+  const m = $('partsListModal');
+  if (m) m.classList.remove('show');
+}
+
+function partsListSearchChanged() {
+  clearTimeout(plSearchTimer);
+  plSearchTimer = setTimeout(doPartsListSearch, 150);
+}
+
+function doPartsListSearch() {
+  const q = ($('plSearch').value || '').trim().toLowerCase();
+  const sr = $('plSearchResults');
+  if (!sr) return;
+
+  if (!q) {
+    sr.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:.85rem">${t('searchHint')}</div>`;
+    return;
+  }
+
+  const matches = PARTS.filter(p => {
+    const hay = (p.n + ' ' + p.p + ' ' + p.m + ' ' + p.c + ' ' + (p.l || '')).toLowerCase();
+    return hay.includes(q);
+  }).slice(0, 30);
+
+  if (!matches.length) {
+    sr.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:.85rem">${t('noResults')}</div>`;
+    return;
+  }
+
+  sr.innerHTML = matches.map((p, i) => {
+    const already = PARTS_LIST.some(x => x.p === p.p);
+    return `<div class="cart-search-result ${already ? 'added' : ''}" data-idx="${PARTS.indexOf(p)}">
+      <div class="csr-info">
+        <div class="csr-name">${escHtml(p.n)}</div>
+        <div class="csr-sub">${escHtml(p.p)}</div>
+        <div class="csr-sub" style="color:var(--muted);font-family:'Segoe UI',Tahoma">🚗 ${escHtml(p.m)}${p.l ? ' · 📍 ' + escHtml(p.l) : ''}</div>
+      </div>
+      <button class="csr-add">${already ? t('addedBtn') : t('addBtn')}</button>
+    </div>`;
+  }).join('');
+
+  sr.querySelectorAll('.cart-search-result').forEach(el => {
+    el.onclick = () => {
+      if (el.classList.contains('added')) return;
+      addToPartsList(parseInt(el.dataset.idx));
+    };
+  });
+}
+
+function addToPartsList(idx) {
+  const p = PARTS[idx];
+  if (!p) return;
+  if (PARTS_LIST.some(x => x.p === p.p)) {
+    toast('⚠️ ' + t('partExists'));
+    return;
+  }
+  PARTS_LIST.push({
+    p: p.p, n: p.n, m: p.m, l: p.l || ''
+  });
+  savePartsList();
+  doPartsListSearch();
+  renderPartsListCart();
+  toast(`✅ ${t('partAdded')}: ${p.n}`);
+}
+
+function removeFromPartsList(partNo) {
+  PARTS_LIST = PARTS_LIST.filter(x => x.p !== partNo);
+  savePartsList();
+  renderPartsListCart();
+  doPartsListSearch();
+  toast('🗑️ ' + t('partRemoved'));
+}
+
+function clearPartsList() {
+  if (!PARTS_LIST.length) { toast(t('listEmpty')); return; }
+  const msg = currentLang === 'ar' ? 'مسح جميع القطع من القائمة؟' : 'Clear all parts from list?';
+  if (!confirm(msg)) return;
+  PARTS_LIST = [];
+  savePartsList();
+  renderPartsListCart();
+  doPartsListSearch();
+  toast('🗑️ ' + t('listCleared'));
+}
+
+function renderPartsListCart() {
+  const cart = $('plCart');
+  if (!cart) return;
+
+  if (!PARTS_LIST.length) {
+    cart.innerHTML = `<div class="cart-empty">
+      <div class="cart-empty-icon">🛍️</div>
+      <div class="cart-empty-text">${t('emptyCart')}</div>
+      <div class="cart-empty-text" style="margin-top:4px;font-size:.78rem">${t('emptyCartHint')}</div>
+    </div>`;
+    return;
+  }
+
+  cart.innerHTML = PARTS_LIST.map(item => `
+    <div class="cart-list-item" data-partno="${escAttr(item.p)}">
+      <div class="cart-info">
+        <div class="cart-name">${escHtml(item.n)}</div>
+        <div class="cart-meta">
+          <span class="cart-num">${escHtml(item.p)}</span>
+          <span class="bg bg-m">🚗 ${escHtml(item.m)}</span>
+          ${item.l ? `<span class="bg bg-l">📍 ${escHtml(item.l)}</span>` : ''}
+        </div>
+      </div>
+      <button class="cart-remove" title="Delete">✕</button>
+    </div>
+  `).join('');
+
+  cart.querySelectorAll('.cart-remove').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const row = btn.closest('.cart-list-item');
+      const partNo = row.getAttribute('data-partno');
+      removeFromPartsList(partNo);
+    };
+  });
+}
+
+/* ============================================================
+   22. WHATSAPP SHARE
+   ============================================================ */
+function sharePartsListWhatsApp() {
+  if (!PARTS_LIST.length) {
+    toast('⚠️ ' + t('emptyListWhatsApp'));
+    return;
+  }
+
+  const useCompact = PARTS_LIST.length > 50;
+  let message = '';
+  const ar = currentLang === 'ar';
+
+  if (useCompact) {
+    message = t('listHeader') + '\n';
+    message += '━━━━━━━━━━━━━━━━━━\n\n';
+    PARTS_LIST.forEach((item, i) => {
+      message += `${i + 1}. ${item.n}\n`;
+      message += `   🔢 \`${item.p}\``;
+      if (item.l) message += ` | 📍 ${item.l}`;
+      message += '\n';
+    });
+    message += '\n━━━━━━━━━━━━━━━━━━\n';
+    message += `📦 ${t('listTotal')}: ${PARTS_LIST.length}\n`;
+    message += `📅 ${new Date().toLocaleDateString(ar ? 'ar-EG' : 'en-US')}`;
+  } else {
+    message = t('listHeader') + '\n';
+    message += '━━━━━━━━━━━━━━━━━━\n\n';
+    PARTS_LIST.forEach((item, i) => {
+      message += `*${i + 1}.* ${item.n}\n`;
+      message += `   🔢 ${t('partNumShort')}: \`${item.p}\`\n`;
+      message += `   🚗 ${t('modelShort')}: ${item.m}\n`;
+      if (item.l) message += `   📍 ${t('locShort')}: ${item.l}\n`;
+      message += '\n';
+    });
+    message += '━━━━━━━━━━━━━━━━━━\n';
+    message += `📦 ${t('listTotal')}: *${PARTS_LIST.length}*\n`;
+    message += `📅 ${t('listDate')}: ${new Date().toLocaleDateString(ar ? 'ar-EG' : 'en-US')}`;
+  }
+
+  const url = 'https://wa.me/?text=' + encodeURIComponent(message);
+
+  try {
+    window.open(url, '_blank');
+    toast('📤 ' + t('openWhatsApp'));
+  } catch(e) {
+    try {
+      const webUrl = 'https://web.whatsapp.com/send?text=' + encodeURIComponent(message);
+      window.open(webUrl, '_blank');
+      toast('📤 WhatsApp Web');
+    } catch(e2) {
+      toast('⚠️ ' + t('whatsappError'));
+    }
+  }
+}
+
+/* ============================================================
+   23. AUTOMATIC LOCALSTORAGE SAFETY NETS
+   ============================================================ */
+window.addEventListener('storage', (e) => {
+  if (e.key === STORE) {
+    try {
+      const p = JSON.parse(e.newValue || '[]');
+      if (Array.isArray(p) && p.length) {
+        PARTS = p;
+        buildDropdowns();
+        buildChips();
+        showMain();
+        render();
+      }
+    } catch(_) {}
+  }
+  if (e.key === FAV_STORE) {
+    try { FAVS = new Set(JSON.parse(e.newValue || '[]')); render(); } catch(_) {}
+  }
+  if (e.key === IMAGES_STORE) {
+    try { IMAGES = JSON.parse(e.newValue || '{}'); render(); } catch(_) {}
+  }
+  if (e.key === PARTS_LIST_STORE) {
+    try {
+      const pl = JSON.parse(e.newValue || '[]');
+      if (Array.isArray(pl)) { PARTS_LIST = pl; updatePartsListBadge(); renderPartsListCart(); }
+    } catch(_) {}
+  }
+  if (e.key === LANG_STORE) {
+    try {
+      const l = e.newValue || 'ar';
+      if (l !== currentLang) applyLanguage(l);
+    } catch(_) {}
+  }
+});
+
+window.addEventListener('pagehide', () => { try { saveAll(); saveFavs(); saveImages(); savePartsList(); } catch(_) {} });
+window.addEventListener('beforeunload', () => { try { saveAll(); saveFavs(); saveImages(); savePartsList(); } catch(_) {} });
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    try {
+      if (PARTS.length) {
+        buildChips();
+        updateStats();
+      }
+    } catch(_) {}
+  }
+});
+</script>
+</body>
+</html>
